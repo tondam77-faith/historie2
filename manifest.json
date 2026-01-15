@@ -1,0 +1,16 @@
+{
+  "name": "Historie Image - v01.0",
+  "short_name": "Historie2",
+  "description": "SRS aplikace s podporou obrázků pro výuku dějepisu",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fdfbf7",
+  "theme_color": "#1a3a5a",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

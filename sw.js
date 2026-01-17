@@ -3,7 +3,7 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './history.png' // OPRAVENO: sjednoceno s názvem v manifestu
+  './history.png' 
 ];
 
 self.addEventListener('install', (e) => {

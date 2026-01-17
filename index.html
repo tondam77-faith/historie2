@@ -412,6 +412,12 @@
 
     function handleSRS(q) {
         if(transitioning) return; let c = sessionCards[sessionIdx];
+        
+        // OPRAVA: Výchozí hodnoty pokud chybí
+        c.reps = c.reps || 0;
+        c.interval = c.interval || 0;
+        c.ef = c.ef || 2.5;
+
         if(q < 3){ c.reps = 0; c.interval = 0; c.nextReview = Date.now(); }
         else {
             if(c.reps === 0) c.interval = (q===3 ? 0.007 : (q===4 ? 1 : 4));
@@ -434,14 +440,20 @@
         return all.filter(c => c.nextReview <= Date.now()).length > 0;
     }
 
+    // --- OPRAVA VÝPOČTU ČASU ---
     function updateLabels(c) {
+        // Nastavíme defaulty, pokud karta nemá historii
+        const reps = c.reps || 0;
+        const interval = c.interval || 0;
+        const ef = c.ef || 2.5;
+
         const getNextText = (quality) => {
             let nextI = 0;
             if (quality < 3) return "<1m";
-            if (c.reps === 0) { nextI = (quality === 3 ? 0.007 : (quality === 4 ? 1 : 4)); } 
+            if (reps === 0) { nextI = (quality === 3 ? 0.007 : (quality === 4 ? 1 : 4)); } 
             else {
-                let nextEf = Math.max(1.3, c.ef + (0.1 - (5-quality)*(0.08 + (5-quality)*0.02)));
-                if (c.reps === 1) nextI = 6; else nextI = c.interval * nextEf;
+                let nextEf = Math.max(1.3, ef + (0.1 - (5-quality)*(0.08 + (5-quality)*0.02)));
+                if (reps === 1) nextI = 6; else nextI = interval * nextEf;
             }
             if (nextI < 1) { let mins = Math.round(nextI * 24 * 60); return mins + "m"; } 
             else { return Math.round(nextI) + "d"; }
@@ -486,7 +498,11 @@
         let newCard = { q, a: a.split('\n'), qImg: currentQImg, aImg: currentAImg, id: id ? parseInt(id) : Date.now(), deck: activeDeck, archived: false };
         if(id){
             const i = decks[activeDeck].findIndex(c=>c.id==id);
-            newCard.nextReview = decks[activeDeck][i].nextReview; newCard.ef = decks[activeDeck][i].ef; newCard.reps = decks[activeDeck][i].reps; newCard.interval = decks[activeDeck][i].interval;
+            // Zachovat data SRS
+            newCard.nextReview = decks[activeDeck][i].nextReview || Date.now(); 
+            newCard.ef = decks[activeDeck][i].ef || 2.5; 
+            newCard.reps = decks[activeDeck][i].reps || 0; 
+            newCard.interval = decks[activeDeck][i].interval || 0;
             decks[activeDeck][i] = newCard;
         } else {
             newCard.nextReview = Date.now(); newCard.ef = 2.5; newCard.reps = 0; newCard.interval = 0;

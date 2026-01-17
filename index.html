@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#fdfbf7">
-    <title>Dějepis - Smart SRS v38</title>
+    <title>Dějepis - Smart SRS v39</title>
     <style>
         :root {
             --primary: #1a3a5a; --accent: #e67e22; --bg: #fdfbf7;
@@ -18,40 +18,45 @@
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background-color: var(--bg); margin: 0; 
-            height: 100vh; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow: hidden; color: #2c3e50;
+            min-height: 100vh; color: #2c3e50;
+            /* Povolíme scroll na body, aby to fungovalo na mobilech i PC přirozeně */
+            overflow-y: auto; 
         }
+
+        /* Třída pro režim učení - zablokuje scroll stránky */
+        body.learning-mode { overflow: hidden; }
 
         .container { 
             width: 100%; max-width: 500px; margin: 0 auto;
-            display: flex; flex-direction: column; height: 100%;
+            display: flex; flex-direction: column; min-height: 100vh;
         }
 
         .hidden { display: none !important; }
 
-        /* --- MENU --- */
-        #ui-menu {
-            flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column;
+        /* --- MENU & EDITOR (Přirozený tok) --- */
+        #ui-menu, #ui-editor {
+            flex: 1; padding: 15px; display: flex; flex-direction: column;
         }
+        
         .deck-menu { background: #f1ede4; padding: 20px; border-radius: 20px; border: 1px solid #e2ddd3; margin-bottom: 20px; text-align: left; }
         
-        /* OPRAVA VELIKOSTI TLAČÍTEK V MENU */
         .deck-option { 
             display: flex; align-items: center; background: white; padding: 15px; 
             margin-bottom: 12px; border-radius: 16px; border: 1px solid #ddd; 
-            min-height: 80px; /* Zajišťuje stejnou výšku */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            min-height: 80px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
         .deck-option input { width: 24px; height: 24px; margin-right: 15px; flex-shrink: 0; }
         .deck-info { flex-grow: 1; padding-right: 10px; }
         .deck-name { font-weight: bold; font-size: 1.05rem; display: block; margin-bottom: 4px; line-height: 1.2; }
 
-        /* --- UČENÍ --- */
+        /* --- UČENÍ (FIXNÍ REŽIM PŘES CELOU OBRAZOVKU) --- */
         #ui-learning {
-            display: flex; flex-direction: column; height: 100%; padding: 15px; box-sizing: border-box;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000;
+            background-color: var(--bg);
+            display: flex; flex-direction: column; padding: 15px; 
         }
 
+        /* Horní lišta */
         .stats-bar { 
             display: flex; justify-content: space-around; font-weight: bold; 
             margin-bottom: 10px; font-size: 0.9rem; color: var(--primary); flex-shrink: 0; 
@@ -62,9 +67,9 @@
         }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
 
+        /* Karta */
         .card-area {
-            flex: 1; 
-            display: flex; flex-direction: column; justify-content: center; 
+            flex: 1; display: flex; flex-direction: column; justify-content: center; 
             overflow-y: auto; min-height: 0;
         }
 
@@ -92,28 +97,33 @@
 
         .card-img { max-width: 100%; max-height: 160px; border-radius: 8px; margin: 5px auto 10px; display: block; object-fit: contain; }
         .q-text { font-size: 1.4rem; font-weight: bold; line-height: 1.3; text-align: center; width: 100%; }
-        .a-list { margin: 0; padding-left: 20px; font-size: 1.2rem; }
-        .a-list li { margin-bottom: 10px; }
-        .a-single { font-size: 1.3rem; border-left: 4px solid var(--highlight); padding-left: 15px; }
+        
+        /* OPRAVA ODRÁŽEK */
+        .a-list { margin: 0; padding-left: 10px; font-size: 1.2rem; list-style: none; }
+        .a-list li { margin-bottom: 10px; position: relative; padding-left: 25px; }
+        .a-list li::before { 
+            content: "•"; color: var(--highlight); font-weight: bold; font-size: 1.8rem; 
+            position: absolute; left: 0; top: -5px;
+        }
+        .a-single { font-size: 1.3rem; border-left: 5px solid var(--highlight); padding-left: 15px; }
 
+        /* Tlačítka SRS */
         .controls-wrapper { 
-            flex-shrink: 0; min-height: 100px; 
+            flex-shrink: 0; min-height: 110px; 
             display: flex; align-items: center; justify-content: center; width: 100%; 
             padding-top: 10px;
         }
         #ui-btns-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
 
-        /* --- TLAČÍTKA --- */
         .btn-main { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 1.1rem; margin-top: 10px; cursor: pointer; }
-        .btn-alt { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; }
-        .btn-utility { background: var(--gray); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .btn-alt { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-utility { background: var(--gray); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         
-        .srs-btn { border: none; padding: 12px 2px; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; }
-        .srs-btn span { font-size: 0.65rem; font-weight: normal; margin-top: 4px; opacity: 0.9; }
+        .srs-btn { border: none; padding: 12px 2px; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; }
+        .srs-btn span { font-size: 0.75rem; font-weight: normal; margin-top: 4px; opacity: 0.95; display: block; }
         .b-0 { background: var(--danger); } .b-1 { background: var(--accent); } .b-2 { background: #3498db; } .b-3 { background: var(--success); }
 
         /* --- EDITOR --- */
-        #ui-editor { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
         .card-creator-box { background: white; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 15px; }
         .input-label { font-size: 0.75rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-top: 15px; display: block; }
         input[type="text"], textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; font-size: 1rem; }
@@ -127,12 +137,12 @@
         .list-item-actions { display: flex; gap: 15px; flex-shrink: 0; }
         .icon-btn { cursor: pointer; font-size: 1.1rem; }
 
-        .app-footer { margin-top: auto; padding: 20px 0; text-align: center; }
+        .app-footer { margin-top: auto; padding: 30px 0 10px; text-align: center; }
         .help-box { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; text-align: left; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .help-box h4 { margin: 0 0 10px 0; color: var(--accent); }
         .help-box p { font-size: 0.9rem; margin-bottom: 10px; line-height: 1.5; }
         
-        .btn-reset { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 8px 15px; border-radius: 6px; font-size: 0.75rem; display: block; margin: 10px auto; }
+        .btn-reset { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 8px 15px; border-radius: 6px; font-size: 0.75rem; display: block; margin: 10px auto; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -175,7 +185,7 @@
                 <button class="btn-utility" style="width:100%" onclick="document.getElementById('help-box').classList.add('hidden')">Rozumím</button>
             </div>
             <button onclick="document.getElementById('help-box').classList.remove('hidden')" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold; font-size:0.9rem; margin-bottom:10px;">❓ Jak to funguje?</button>
-            <div id="app-version" style="font-size: 0.7rem; color: #bdc3c7;">Verze aplikace: v38.0</div>
+            <div id="app-version" style="font-size: 0.7rem; color: #bdc3c7;">Verze aplikace: v39.0</div>
         </div>
     </div>
 
@@ -255,7 +265,7 @@
 
 <script>
     let db;
-    const APP_VERSION_DISPLAY = "v38.0"; 
+    const APP_VERSION_DISPLAY = "v39.0"; 
     const DB_NAME = "HistorySRSDatabase", DB_VERSION = 1;
 
     async function dbOpen() {
@@ -355,6 +365,9 @@
         if(!sessionCards.length) { alert("Dnes nemáš co opakovat!"); return; }
         
         sessionIdx = 0; 
+        
+        // Změna layoutu na fixní pro učení
+        document.body.classList.add('learning-mode');
         document.getElementById('ui-menu').classList.add('hidden'); 
         document.getElementById('ui-learning').classList.remove('hidden');
         renderCard();
@@ -362,6 +375,8 @@
 
     function renderCard() {
         if (sessionIdx >= sessionCards.length) { 
+            // Návrat k normálnímu layoutu
+            document.body.classList.remove('learning-mode');
             document.getElementById('ui-learning').classList.add('hidden'); 
             const hasMore = checkRemainingDue();
             document.getElementById('btn-continue').classList.toggle('hidden', !hasMore);
@@ -437,6 +452,7 @@
         document.getElementById('l-easy').innerText = getNextText(5);
     }
 
+    // --- EDITOR LOGIC ---
     let activeDeck = "", currentQImg = "", currentAImg = "";
 
     function openCreator() { activeDeck = ""; switchView('ui-editor'); document.getElementById('editor-title').innerText = "Nové téma"; document.getElementById('in-deck-name').value = ""; document.getElementById('in-deck-name').disabled = false; document.getElementById('card-form').classList.add('hidden'); document.getElementById('btn-next').classList.remove('hidden'); }

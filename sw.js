@@ -1,9 +1,9 @@
-const CACHE_NAME = 'historie-srs-v36'; // ZMĚNA NA v36
+const CACHE_NAME = 'historie-srs-v37'; // ZMĚNA NA v37
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './history.png' 
+  './history.png'
 ];
 
 self.addEventListener('install', (e) => {

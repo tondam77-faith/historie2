@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a3a5a">
-    <title>Historie Image - v01.1</title>
+    <meta name="theme-color" content="#fdfbf7">
+    <title>Dějepis - Smart SRS v36</title>
     <style>
         :root {
             --primary: #1a3a5a; --accent: #e67e22; --bg: #fdfbf7;
@@ -17,12 +17,18 @@
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg); margin: 0; display: flex;
-            flex-direction: column; align-items: center; min-height: 100vh;
+            background-color: var(--bg); margin: 0; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh;
             padding: 15px; color: #2c3e50;
         }
 
-        .container { width: 100%; max-width: 500px; text-align: center; }
+        .container { 
+            width: 100%; max-width: 500px; text-align: center; 
+            display: flex; flex-direction: column; flex-grow: 1;
+        }
+
+        .content-wrap { flex-grow: 1; width: 100%; }
 
         /* --- MENU --- */
         .deck-menu { background: #f1ede4; padding: 20px; border-radius: 20px; border: 1px solid #e2ddd3; margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; }
@@ -31,128 +37,191 @@
         .deck-info { flex-grow: 1; cursor: pointer; }
         .deck-name { font-weight: bold; display: block; }
         
-        /* --- KARTA (Opravený vizuál) --- */
+        /* --- KARTA & PROGRESS --- */
         .stats-bar { display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem; color: var(--primary); }
         .progress-container { width: 100%; height: 8px; background: #ddd; border-radius: 4px; margin-bottom: 15px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
 
-        .card-box { perspective: 1200px; height: 380px; margin-bottom: 15px; cursor: pointer; width: 100%; margin-top: 10px; }
+        .card-box { perspective: 1200px; height: 380px; margin-bottom: 15px; cursor: pointer; width: 100%; }
         .card { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .card.flipped { transform: rotateY(180deg); }
         .card-front, .card-back {
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
             display: flex; flex-direction: column; justify-content: center; padding: 25px; border-radius: 24px;
-            /* Výraznější stín a ohraničení */
-            box-shadow: 0 15px 35px rgba(26, 58, 90, 0.15);
+            box-shadow: 0 10px 30px rgba(26, 58, 90, 0.1);
         }
-        .card-front { background: var(--card-front); color: var(--primary); border: 2px solid #d1d1d1; }
+        .card-front { background: var(--card-front); color: var(--primary); border: 1px solid #eee; }
         .card-back { background: var(--primary); color: #ffffff; transform: rotateY(180deg); align-items: flex-start; text-align: left; overflow-y: auto; }
 
-        .card-img { max-width: 100%; max-height: 180px; border-radius: 12px; margin-bottom: 15px; object-fit: contain; }
-        .q-text { font-size: 1.4rem; font-weight: bold; line-height: 1.2; }
-        .a-list { margin: 0; padding-left: 25px; font-size: 1.2rem; width: 100%; }
-        .a-list li { margin-bottom: 10px; line-height: 1.3; }
+        /* Styl pro obrázky na kartě */
+        .card-img { max-width: 100%; max-height: 150px; border-radius: 8px; margin: 10px 0; object-fit: contain; display: block; margin-left: auto; margin-right: auto; }
+
+        .q-text { font-size: 1.4rem; font-weight: bold; line-height: 1.3; }
+        .a-list { margin: 0; padding-left: 25px; font-size: 1.25rem; width: 100%; }
+        .a-list li { margin-bottom: 12px; line-height: 1.4; }
+        .a-list li::marker { color: var(--highlight); font-weight: bold; font-size: 1.4rem; }
+        .a-single { font-size: 1.4rem; border-left: 5px solid var(--highlight); padding-left: 15px; line-height: 1.4; }
 
         /* --- TLAČÍTKA --- */
         .btn-main { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 10px; }
         .btn-alt { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; width: fit-content; align-self: flex-start; margin-top: 10px; }
         .btn-utility { background: var(--gray); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
         
-        .btn-reset { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; display: block; margin: 25px auto 0; }
+        .btn-reset { 
+            background: none; border: 1px solid var(--danger); color: var(--danger); 
+            padding: 8px 15px; border-radius: 6px; cursor: pointer; 
+            font-size: 0.75rem; display: block; margin: 10px auto 0; opacity: 0.7; 
+        }
+        .btn-reset:hover { background: var(--danger); color: white; opacity: 1; }
 
         .controls-wrapper { min-height: 110px; display: flex; align-items: center; width: 100%; }
         .srs-btn { border: none; padding: 12px 2px; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; }
-        .srs-btn span { font-size: 0.65rem; font-weight: normal; margin-top: 4px; }
+        .srs-btn span { font-size: 0.65rem; font-weight: normal; margin-top: 4px; opacity: 0.9; }
         .b-0 { background: var(--danger); } .b-1 { background: var(--accent); } .b-2 { background: #3498db; } .b-3 { background: var(--success); }
 
+        /* --- EDITOR --- */
         .admin-panel { margin-top: 20px; padding: 20px; background: #f1ede4; border-radius: 20px; border: 1px solid #e2ddd3; text-align: left; }
-        input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; font-size: 1rem; }
-        #img-preview { max-width: 100%; height: 80px; margin-top: 10px; border-radius: 8px; display: none; object-fit: cover; }
+        .card-creator-box { background: white; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .input-label { font-size: 0.75rem; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-top: 15px; display: block; }
+        input[type="text"], textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; font-size: 1rem; }
+        
+        .img-preview-box { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+        .preview-thumb { height: 50px; border-radius: 5px; border: 1px solid #ccc; display: none; }
+        .btn-small-del { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer; display: none; }
+
+        .list-item-edit { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: white; font-size: 0.85rem; }
+
+        /* --- PATIČKA --- */
+        .app-footer { margin-top: auto; padding-top: 30px; padding-bottom: 10px; width: 100%; }
+        .help-box { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; text-align: left; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .help-box h4 { margin: 0 0 10px 0; color: var(--accent); }
+        .help-box p { font-size: 0.9rem; margin-bottom: 10px; line-height: 1.5; }
+        .help-box strong { color: var(--primary); }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="ui-menu">
-        <h2>Historie Image - v01.1</h2>
-        <div class="deck-menu">
-            <h4 style="margin:0 0 10px 0;">Aktivní témata:</h4>
-            <div id="deck-list">Načítám...</div>
-            <button class="btn-main" onclick="startSession()">Spustit dnešní cíl 🚀</button>
-            <button class="btn-alt" onclick="openCreator()">➕ Nové téma</button>
-        </div>
-
-        <div class="admin-panel" style="background:#eee; margin-bottom: 20px;">
-            <h4 style="margin:0 0 10px 0;">📂 Správa dat</h4>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="btn-utility" onclick="exportData()">💾 Export JSON</button>
-                <button class="btn-utility" onclick="document.getElementById('file-in').click()">📂 Import JSON</button>
+    
+    <div class="content-wrap">
+        
+        <div id="ui-menu">
+            <h2 style="margin-bottom: 5px;">Dějepis - Smart SRS</h2>
+            <p style="margin: 0 0 20px 0; font-size: 0.9rem; opacity: 0.8;">Chytré opakování pro základní školu</p>
+            
+            <div class="deck-menu">
+                <h4 style="margin:0 0 10px 0;">Aktivní témata:</h4>
+                <div id="deck-list">Načítám...</div>
+                <button class="btn-main" onclick="startSession()">Spustit dnešní cíl 🚀</button>
+                <button class="btn-alt" onclick="openCreator()">➕ Nové téma</button>
             </div>
-            <input type="file" id="file-in" accept=".json" class="hidden" onchange="importData(event)">
-            <button class="btn-reset" onclick="fullReset()">🗑️ Resetovat vše</button>
+
+            <div id="archived-section" class="hidden" style="margin-top:20px; opacity:0.7;">
+                <h4 style="margin:0 0 10px 0;">Archiv:</h4>
+                <div id="archived-list"></div>
+            </div>
+
+            <div class="admin-panel" style="background:#eee; margin-top: 20px;">
+                <h4 style="margin:0 0 10px 0;">📂 Správa dat</h4>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn-utility" onclick="exportData()">💾 Záloha</button>
+                    <button class="btn-utility" onclick="document.getElementById('file-in').click()">📂 Nahrát</button>
+                </div>
+                <input type="file" id="file-in" accept=".json,application/json" class="hidden" onchange="importData(event)">
+                <button class="btn-reset" onclick="fullReset()">🗑️ Resetovat aplikaci</button>
+            </div>
         </div>
 
-        <div id="archived-section" class="hidden" style="margin-top:20px; opacity:0.7;">
-            <h4 style="margin:0 0 10px 0;">Archiv:</h4>
-            <div id="archived-list"></div>
+        <div id="ui-learning" class="hidden">
+            <div class="stats-bar">
+                <span id="progress-text">Karta 1 z X</span>
+                <span onclick="location.reload()" style="color:var(--accent); cursor:pointer;">Menu</span>
+            </div>
+            <div class="progress-container"><div id="progress-fill" class="progress-fill"></div></div>
+            <div class="card-box" onclick="handleFlip()">
+                <div class="card" id="card-el">
+                    <div class="card-front" id="f-content"></div>
+                    <div class="card-back" id="b-content"></div>
+                </div>
+            </div>
+            <div class="controls-wrapper">
+                <div id="ui-btns-container" class="hidden" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%;">
+                    <button class="srs-btn b-0" onclick="handleSRS(0)">Znovu<span>&lt;1m</span></button>
+                    <button class="srs-btn b-1" id="l-hard" onclick="handleSRS(3)">Těžké<span>10m</span></button>
+                    <button class="srs-btn b-2" id="l-good" onclick="handleSRS(4)">Dobré<span>1d</span></button>
+                    <button class="srs-btn b-3" id="l-easy" onclick="handleSRS(5)">Snadné<span>4d</span></button>
+                </div>
+                <div id="flip-hint" style="width: 100%; text-align: center; font-size: 0.85rem; color: var(--gray);">
+                    Klikni na kartu pro zobrazení odpovědi.
+                </div>
+            </div>
+        </div>
+
+        <div id="ui-editor" class="admin-panel hidden">
+            <h3 id="editor-title" style="margin-top:0;">Editor tématu</h3>
+            <span class="input-label">Název balíčku</span>
+            <input type="text" id="in-deck-name" placeholder="např. Byzantská říše">
+            <div id="card-form" class="hidden">
+                <div class="card-creator-box">
+                    <h4 style="margin-top:0; color:var(--accent);">Nová karta</h4>
+                    <input type="hidden" id="in-card-id">
+                    
+                    <span class="input-label" style="margin-top:0;">Otázka</span>
+                    <input type="text" id="in-card-q" placeholder="Zadej otázku...">
+                    <div class="img-preview-box">
+                        <label class="btn-utility" style="font-size:0.7rem;">🖼️ Obrázek Otázky <input type="file" hidden accept="image/*" onchange="previewImg(event, 'q')"></label>
+                        <img id="prev-q" class="preview-thumb">
+                        <button id="del-q" class="btn-small-del" onclick="removeImg('q')">X</button>
+                    </div>
+
+                    <span class="input-label">Odpověď</span>
+                    <textarea id="in-card-a" rows="3" placeholder="Zadej odpověď..."></textarea>
+                    <div class="img-preview-box">
+                        <label class="btn-utility" style="font-size:0.7rem;">🖼️ Obrázek Odpovědi <input type="file" hidden accept="image/*" onchange="previewImg(event, 'a')"></label>
+                        <img id="prev-a" class="preview-thumb">
+                        <button id="del-a" class="btn-small-del" onclick="removeImg('a')">X</button>
+                    </div>
+
+                    <button class="btn-main" onclick="saveCard()" style="padding:10px; font-size:0.9rem;">Uložit kartu</button>
+                </div>
+                <div id="editor-card-list" style="max-height:200px; overflow-y:auto; margin-top:10px; border:1px solid #ddd; border-radius:10px;"></div>
+            </div>
+            <button class="btn-main" id="btn-next" onclick="confirmName()">Další: Spravovat karty</button>
+            <button class="btn-utility" style="width:100%; margin-top:10px;" onclick="location.reload()">Zpět do menu</button>
+        </div>
+
+        <div id="ui-done" class="hidden" style="padding:40px 0;">
+            <h3>Dnešní cíl splněn! 🎉</h3>
+            <button class="btn-main" onclick="location.reload()">Zpět na přehled</button>
+            <button id="btn-continue" class="btn-alt" style="width: 100%; align-self: center;" onclick="startSession()">Pokračovat v dalších 20</button>
+        </div>
+
+    </div>
+
+    <div class="app-footer">
+        <div id="help-box" class="help-box hidden">
+            <h4>🧠 Jak se učit chytře?</h4>
+            <p>Tato aplikace funguje jako trenér tvé paměti. Ví přesně, kdy ti má kartu ukázat, abys ji nezapomněl.</p>
+            <p><strong>Znovu:</strong> Vůbec jsem to nevěděl. (Ukážu ti to hned)</p>
+            <p><strong>Těžké:</strong> Vzpomínal jsem si těžko. (Ukážu za 10 minut)</p>
+            <p><strong>Dobré:</strong> Věděl jsem to, ale musel jsem přemýšlet. (Ukážu zítra)</p>
+            <p><strong>Snadné:</strong> Vystřelil jsem to hned. (Ukážu až za pár dní)</p>
+            <button class="btn-utility" style="width:100%" onclick="document.getElementById('help-box').classList.add('hidden')">Rozumím</button>
+        </div>
+        <button onclick="document.getElementById('help-box').classList.remove('hidden')" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold; font-size:0.9rem; margin-bottom:10px;">❓ Jak to funguje?</button>
+        <div id="app-version" style="font-size: 0.7rem; color: #bdc3c7;">
+            Verze aplikace: v36.0
         </div>
     </div>
 
-    <div id="ui-learning" class="hidden">
-        <div class="stats-bar">
-            <span id="progress-text">Karta 1 z 1</span>
-            <span onclick="location.reload()" style="color:var(--accent); cursor:pointer;">Menu</span>
-        </div>
-        <div class="progress-container"><div id="progress-fill" class="progress-fill"></div></div>
-        <div class="card-box" onclick="handleFlip()">
-            <div class="card" id="card-el">
-                <div class="card-front" id="f-content"></div>
-                <div class="card-back" id="b-content"></div>
-            </div>
-        </div>
-        <div class="controls-wrapper">
-            <div id="ui-btns-container" class="hidden" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%;">
-                <button class="srs-btn b-0" onclick="handleSRS(0)">Znovu<span>&lt;1m</span></button>
-                <button class="srs-btn b-1" id="l-hard" onclick="handleSRS(3)">Těžké<span>10m</span></button>
-                <button class="srs-btn b-2" id="l-good" onclick="handleSRS(4)">Dobré<span>1d</span></button>
-                <button class="srs-btn b-3" id="l-easy" onclick="handleSRS(5)">Snadné<span>4d</span></button>
-            </div>
-            <div id="flip-hint" style="width: 100%; text-align: center; font-size: 0.85rem; color: var(--gray);">
-                Klikni na kartu pro zobrazení odpovědi.
-            </div>
-        </div>
-    </div>
-
-    <div id="ui-editor" class="admin-panel hidden">
-        <h3 id="editor-title" style="margin-top:0;">Editor tématu</h3>
-        <input type="text" id="in-deck-name" placeholder="Název balíčku (např. Starověk)">
-        <div id="card-form" class="hidden">
-            <div style="background: white; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-top: 15px;">
-                <h4 style="margin-top:0; color:var(--accent);">Nová karta</h4>
-                <input type="hidden" id="in-card-id">
-                <input type="text" id="in-card-q" placeholder="Otázka...">
-                <input type="file" id="in-card-img" accept="image/*" onchange="previewImg(event)" style="font-size: 0.8rem;">
-                <img id="img-preview" src="">
-                <button id="btn-del-img" class="btn-reset" style="margin: 5px 0; display:none;" onclick="removeImg()">Smazat obrázek</button>
-                <textarea id="in-card-a" rows="3" placeholder="Odpověď (každý bod na nový řádek)..."></textarea>
-                <button class="btn-main" onclick="saveCard()">Uložit kartu ✅</button>
-            </div>
-            <div id="editor-card-list" style="max-height:200px; overflow-y:auto; margin-top:10px; border:1px solid #ddd; border-radius:10px;"></div>
-        </div>
-        <button class="btn-main" id="btn-next" onclick="confirmName()">Další: Přidat karty</button>
-        <button class="btn-utility" style="width:100%; margin-top:10px;" onclick="location.reload()">Hotovo / Zpět</button>
-    </div>
-
-    <div id="ui-done" class="hidden" style="padding:40px 0;">
-        <h3>Dnešní cíl splněn! 🎉</h3>
-        <button class="btn-main" onclick="location.reload()">Zpět na přehled</button>
-    </div>
 </div>
 
 <script>
-    let db, activeDeck = ""; // Deklarace activeDeck vyřešena
-    const DB_NAME = "HistorySRSDatabaseImage", DB_VERSION = 1;
+    let db;
+    const APP_VERSION_DISPLAY = "v36.0"; 
+    const DB_NAME = "HistorySRSDatabase", DB_VERSION = 1;
 
     async function dbOpen() {
         return new Promise((resolve) => {
@@ -163,13 +232,8 @@
     }
 
     async function dbSave(data) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction("state", "readwrite");
-            const store = tx.objectStore("state");
-            const req = store.put(data, "currentDecks");
-            req.onsuccess = () => resolve();
-            req.onerror = () => reject();
-        });
+        const tx = db.transaction("state", "readwrite");
+        tx.objectStore("state").put(data, "currentDecks");
     }
 
     async function dbLoad() {
@@ -181,12 +245,54 @@
     }
 
     let decks = {}, sessionCards = [], sessionIdx = 0, sessionLimit = 20, transitioning = false;
-    let currentBase64 = "";
+
+    // --- INITIAL CONTENT (Bez obrázků pro úsporu místa v kódu, ale připraveno) ---
+    const INITIAL_CONTENT = {
+        "Arabská říše": [
+            { q: "Kdo byli původní obyvatelé Arabského poloostrova?", a: ["Kočovní pastevci – beduíni."], id: 1, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Co znamená v překladu slovo islám?", a: ["Odevzdanost Bohu."], id: 2, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Ve kterém století se zrodil islám?", a: ["V 7. století."], id: 3, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Kdo je podle islámu jediný Bůh a kdo je jeho prorok?", a: ["Bůh: Alláh", "Prorok: Muhammad (Mohamed)"], id: 4, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Jak se jmenuje posvátná kniha muslimů?", a: ["Korán."], id: 5, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Vyjmenuj 5 pilířů islámu.", a: ["Víra v jednoho Boha - Alláha", "Modlitba 5x denně", "Almužna chudým", "Půst v měsíci Ramadánu", "Pouť do Mekky jednou za život"], id: 6, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Co je to chalífát?", a: ["Jednotná arabská říše v čele s chalífou."], id: 7, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Kam až sahala Arabská říše v době rozmachu?", a: ["Od Atlantiku přes severní Afriku až k Indii."], id: 8, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Které evropské státy leží na Pyrenejském poloostrově?", a: ["Španělsko", "Portugalsko"], id: 9, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Kdo byl Ibrahim ibn Jákub?", a: ["Kupec, který v 10. stol. napsal první popis Prahy."], id: 10, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "V jakých vědách Arabové vynikali?", a: ["Matematika a fyzika", "Zeměpis", "Lékařství"], id: 11, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Jaké nové plodiny přinesli Arabové do Evropy?", a: ["Rýže", "Bavlna", "Citrony a pomeranče"], id: 12, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Proč mají islámské stavby jen geometrické vzory?", a: ["Protože Korán zakazuje zobrazovat lidské postavy."], id: 13, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Jak se nazývá štíhlá věž u mešity?", a: ["Minaret."], id: 14, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
+            { q: "Které město je nejposvátnější pro muslimy?", a: ["Mekka (s chrámem Ka'ba)."], id: 15, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false }
+        ],
+        "Slované a Sámova říše": [
+            { q: "Kdy přišli Slované na naše území?", a: ["V 5. až 6. století.", "V rámci tzv. druhé vlny stěhování národů."], id: 401, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Kde byla původní pravlast Slovanů?", a: ["Ve východní Evropě.", "Mezi řekami Vislou a Dněprem (severně od Karpat)."], id: 402, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Do kterých tří směrů se Slované vydali z pravlasti?", a: ["Na jih (Balkán), na západ (střední Evropa) a na východ."], id: 403, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Jak se nazýval typický slovanský dům?", a: ["Polozemnice.", "Částečně zahloubená chata s dřevěnou konstrukcí a střechou."], id: 404, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "V čem spočívalo dvojpolní hospodářství?", a: ["Pole bylo rozděleno na dvě části.", "Jedna polovina se osela (jaro) a druhá odpočívala (úhor)."], id: 405, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "V co věřili staří Slované před přijetím křesťanství?", a: ["Byli pohané.", "Uctívali přírodní síly a různé bohy (např. Perun nebo Svantovít)."], id: 406, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Kdo byl Sámo?", a: ["Francký kupec.", "Slované si ho zvolili za svého vůdce po vítězství nad Avary."], id: 407, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Proč vznikla Sámova říše?", a: ["Jako kmenový svaz pro společnou obranu.", "Sloužila k ochraně proti nájezdům Avarů a útokům Franků."], id: 408, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Ve kterém století existovala Sámova říše?", a: ["V 7. století (přibližně první polovina)."], id: 409, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Jak se jmenovala vítězná bitva Slovanů proti Frankům roku 631?", a: ["Bitva u Wogastisburgu."], id: 410, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Kterého franského krále Sámo porazil v bitvě u Wogastisburgu?", a: ["Dagoberta I."], id: 411, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Který jediný písemný pramen nás informuje o Sámově říši?", a: ["Fredegarova kronika."], id: 412, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Co se stalo s říší po Sámově smrti?", a: ["Kmenový svaz se rozpadl.", "Sámova říše jako celek zanikla."], id: 413, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Které řemeslné předměty se dochovaly díky archeologickým vykopávkám?", a: ["Šperky (např. náušnice), ostruhy, zbraně a zemědělské nástroje."], id: 414, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
+            { q: "Vyjmenuj alespoň tři první slovanské státy, které vznikaly po stěhování národů.", a: ["Bulharsko, Velká Morava, Český stát, Polsko nebo Kyjevská Rus."], id: 415, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false }
+        ]
+    };
 
     async function init() {
         await dbOpen();
+        if (navigator.storage && navigator.storage.persist) await navigator.storage.persist();
+        
+        const vEl = document.getElementById('app-version');
+        if(vEl) vEl.innerText = "Verze aplikace: " + APP_VERSION_DISPLAY;
+        
         const saved = await dbLoad();
-        if (saved) decks = saved;
+        if (saved) { decks = saved; } else { decks = INITIAL_CONTENT; await dbSave(decks); }
         renderMenu();
     }
 
@@ -198,37 +304,65 @@
             const due = decks[n].filter(c => c.nextReview <= Date.now()).length;
             const h = `<div class="deck-option"><input type="checkbox" value="${n}" ${isA?'':'checked'}>
                 <div class="deck-info" onclick="openEditor('${n}')"><span class="deck-name">${n} ${isA?'📦':'✏️'}</span>
-                <span style="font-size:0.75rem; color:#666;">Karet: ${decks[n].length} | Dnes: ${due}</span></div>
+                <span style="font-size:0.75rem; color:#666;">Karet: ${decks[n].length} | Opakování: ${due}</span></div>
                 <button onclick="toggleArchive('${n}')" style="background:none; border:none; cursor:pointer; font-size:1.4rem;">${isA?'📤':'📥'}</button></div>`;
             if(isA){ arch.innerHTML += h; hasArch = true; } else list.innerHTML += h;
         });
         document.getElementById('archived-section').classList.toggle('hidden', !hasArch);
     }
 
-    function toggleArchive(n) { const s = !decks[n][0].archived; decks[n].forEach(c => c.archived = s); dbSave(decks).then(renderMenu); }
+    function toggleArchive(n) { const s = !decks[n][0].archived; decks[n].forEach(c => c.archived = s); dbSave(decks); renderMenu(); }
 
     function startSession() {
         const sel = Array.from(document.querySelectorAll('#deck-list input:checked')).map(i => i.value);
-        if(!sel.length) return; sessionCards = []; sel.forEach(n => sessionCards = sessionCards.concat(decks[n]));
-        sessionCards = sessionCards.filter(c => c.nextReview <= Date.now()).sort((a,b)=>a.nextReview - b.nextReview).slice(0, sessionLimit);
-        if(!sessionCards.length) return alert("Dnes nemáš co opakovat!");
-        sessionIdx = 0; document.getElementById('ui-menu').classList.add('hidden'); renderCard();
+        if(!sel.length) return; 
+        
+        // 1. Vybereme VŠECHNY karty z témat
+        let allCards = []; sel.forEach(n => allCards = allCards.concat(decks[n]));
+        
+        // 2. Vyfiltrujeme jen ty, co jsou na řadě (nebo nové)
+        let dueCards = allCards.filter(c => c.nextReview <= Date.now());
+
+        // 3. Seřadíme je podle naléhavosti (starší resty dříve)
+        dueCards.sort((a,b) => a.nextReview - b.nextReview);
+
+        // 4. Vezmeme maximálně denní limit (20)
+        sessionCards = dueCards.slice(0, sessionLimit);
+
+        // 5. ZAMÍCHÁME JE (náhodnost v rámci lekce)
+        if(sessionCards.length > 1) {
+             sessionCards.sort(() => Math.random() - 0.5);
+        }
+
+        if(!sessionCards.length) {
+            alert("Dnes nemáš co opakovat!");
+            return;
+        }
+        sessionIdx = 0; 
+        document.getElementById('ui-menu').classList.add('hidden'); 
+        document.querySelector('.app-footer').classList.add('hidden'); 
+        document.getElementById('ui-done').classList.add('hidden');
+        renderCard();
     }
 
     function renderCard() {
         if (sessionIdx >= sessionCards.length) { 
             document.getElementById('ui-learning').classList.add('hidden'); 
-            document.getElementById('ui-done').classList.remove('hidden'); return; 
+            const hasMore = checkRemainingDue();
+            document.getElementById('btn-continue').classList.toggle('hidden', !hasMore);
+            document.getElementById('ui-done').classList.remove('hidden'); 
+            document.querySelector('.app-footer').classList.remove('hidden'); 
+            return; 
         }
         const c = sessionCards[sessionIdx]; updateLabels(c);
-        document.getElementById('progress-text').innerText = `Karta ${sessionIdx + 1} z ${sessionCards.length}`;
-        document.getElementById('progress-fill').style.width = `${((sessionIdx) / sessionCards.length) * 100}%`;
-        
         document.getElementById('ui-btns-container').classList.add('hidden');
         document.getElementById('flip-hint').classList.remove('hidden');
+        document.getElementById('progress-text').innerText = `Karta ${sessionIdx + 1} z ${sessionCards.length}`;
+        document.getElementById('progress-fill').style.width = `${(sessionIdx / sessionCards.length)*100}%`;
         
-        let imgHtml = c.qImg ? `<img src="${c.qImg}" class="card-img">` : "";
-        document.getElementById('f-content').innerHTML = `<div style="font-size:0.7rem; color:var(--accent); margin-bottom:5px; font-weight:bold;">${c.deck.toUpperCase()}</div>${imgHtml}<div class="q-text">${c.q}</div>`;
+        // Vykreslení otázky (s obrázkem, pokud existuje)
+        let qImgHtml = c.qImg ? `<img src="${c.qImg}" class="card-img">` : "";
+        document.getElementById('f-content').innerHTML = `<div style="font-size:0.7rem; color:var(--accent); margin-bottom:5px; font-weight:bold;">${c.deck.toUpperCase()}</div>${qImgHtml}<div class="q-text">${c.q}</div>`;
         
         document.getElementById('b-content').innerHTML = ""; 
         document.getElementById('card-el').classList.remove('flipped'); 
@@ -236,28 +370,39 @@
         transitioning = false;
     }
 
-    async function handleSRS(q) {
+    function handleFlip() {
+        if(document.getElementById('card-el').classList.contains('flipped') || transitioning) return;
+        transitioning = true; document.getElementById('card-el').classList.add('flipped');
+        setTimeout(() => {
+            const c = sessionCards[sessionIdx];
+            // Vykreslení odpovědi (s obrázkem, pokud existuje)
+            let aImgHtml = c.aImg ? `<img src="${c.aImg}" class="card-img">` : "";
+            let textHtml = c.a.length > 1 ? `<ul class="a-list">${c.a.map(i=>`<li>${i}</li>`).join('')}</ul>` : `<div class="a-single">${c.a[0]}</div>`;
+            
+            document.getElementById('b-content').innerHTML = textHtml + aImgHtml;
+            
+            document.getElementById('ui-btns-container').classList.remove('hidden'); 
+            document.getElementById('flip-hint').classList.add('hidden'); 
+            transitioning = false;
+        }, 600);
+    }
+
+    function handleSRS(q) {
         if(transitioning) return; let c = sessionCards[sessionIdx];
+        document.getElementById('ui-btns-container').classList.add('hidden');
         if(q < 3){ c.reps = 0; c.interval = 0; c.nextReview = Date.now(); }
         else {
             if(!c.reps) c.interval = (q==3?0.007 : (q==4?1:4));
             else if(c.reps==1) c.interval = 6; else c.interval = Math.round(c.interval * c.ef);
             c.reps++; c.ef = Math.max(1.3, c.ef + (0.1 - (5-q)*(0.08 + (5-q)*0.02))); c.nextReview = Date.now() + (c.interval * 86400000);
         }
-        const idx = decks[c.deck].findIndex(i => i.id === c.id); decks[c.deck][idx] = c; 
-        await dbSave(decks); sessionIdx++; renderCard();
+        const idx = decks[c.deck].findIndex(i => i.id === c.id); decks[c.deck][idx] = c; dbSave(decks); sessionIdx++; renderCard();
     }
 
-    function handleFlip() {
-        if(document.getElementById('card-el').classList.contains('flipped') || transitioning) return;
-        transitioning = true; document.getElementById('card-el').classList.add('flipped');
-        setTimeout(() => {
-            const c = sessionCards[sessionIdx];
-            document.getElementById('b-content').innerHTML = c.a.length > 1 ? `<ul class="a-list">${c.a.map(i=>`<li>${i}</li>`).join('')}</ul>` : `<div style="font-size:1.3rem; border-left:5px solid var(--highlight); padding-left:15px;">${c.a[0]}</div>`;
-            document.getElementById('ui-btns-container').classList.remove('hidden'); 
-            document.getElementById('flip-hint').classList.add('hidden'); 
-            transitioning = false;
-        }, 600);
+    function checkRemainingDue() {
+        const sel = Array.from(document.querySelectorAll('#deck-list input:checked')).map(i => i.value);
+        let all = []; sel.forEach(n => all = all.concat(decks[n]));
+        return all.filter(c => c.nextReview <= Date.now()).length > 0;
     }
 
     function updateLabels(c) {
@@ -267,56 +412,99 @@
         document.getElementById('l-easy').querySelector('span').innerText = f(5);
     }
 
-    function previewImg(e) {
+    // --- EDITOR LOGIC ---
+    let activeDeck = "", currentQImg = "", currentAImg = "";
+
+    function openCreator() { activeDeck = ""; document.getElementById('ui-menu').classList.add('hidden'); document.getElementById('ui-editor').classList.remove('hidden'); document.getElementById('editor-title').innerText = "Nové téma"; document.getElementById('in-deck-name').value = ""; document.getElementById('in-deck-name').disabled = false; document.getElementById('card-form').classList.add('hidden'); document.getElementById('btn-next').classList.remove('hidden'); document.querySelector('.app-footer').classList.add('hidden'); }
+    function openEditor(n) { activeDeck = n; document.getElementById('ui-menu').classList.add('hidden'); document.getElementById('ui-editor').classList.remove('hidden'); document.getElementById('editor-title').innerText = "Upravit: " + n; document.getElementById('in-deck-name').value = n; confirmName(); document.querySelector('.app-footer').classList.add('hidden'); }
+    function confirmName() { const n = document.getElementById('in-deck-name').value.trim(); if(!n) return; if(!decks[n]) decks[n] = []; activeDeck = n; document.getElementById('in-deck-name').disabled = true; document.getElementById('btn-next').classList.add('hidden'); document.getElementById('card-form').classList.remove('hidden'); renderEditorList(); }
+    
+    function previewImg(e, type) {
         const reader = new FileReader();
         reader.onload = () => {
-            currentBase64 = reader.result;
-            document.getElementById('img-preview').src = currentBase64;
-            document.getElementById('img-preview').style.display = "block";
-            document.getElementById('btn-del-img').style.display = "block";
+            if(type === 'q') { currentQImg = reader.result; document.getElementById('prev-q').src = currentQImg; document.getElementById('prev-q').style.display = "block"; document.getElementById('del-q').style.display = "block"; }
+            if(type === 'a') { currentAImg = reader.result; document.getElementById('prev-a').src = currentAImg; document.getElementById('prev-a').style.display = "block"; document.getElementById('del-a').style.display = "block"; }
         };
         reader.readAsDataURL(e.target.files[0]);
     }
-    function removeImg() { currentBase64 = ""; document.getElementById('img-preview').style.display = "none"; document.getElementById('btn-del-img').style.display = "none"; document.getElementById('in-card-img').value = ""; }
 
-    function openCreator() { activeDeck = ""; document.getElementById('ui-menu').classList.add('hidden'); document.getElementById('ui-editor').classList.remove('hidden'); document.getElementById('in-deck-name').value = ""; document.getElementById('in-deck-name').disabled = false; document.getElementById('btn-next').classList.remove('hidden'); document.getElementById('card-form').classList.add('hidden'); }
-    function openEditor(n) { activeDeck = n; document.getElementById('ui-menu').classList.add('hidden'); document.getElementById('ui-editor').classList.remove('hidden'); document.getElementById('in-deck-name').value = n; confirmName(); }
-    function confirmName() { const n = document.getElementById('in-deck-name').value.trim(); if(!n) return; if(!decks[n]) decks[n] = []; activeDeck = n; document.getElementById('in-deck-name').disabled = true; document.getElementById('btn-next').classList.add('hidden'); document.getElementById('card-form').classList.remove('hidden'); renderEditorList(); }
-    
-    async function saveCard() {
-        const q = document.getElementById('in-card-q').value.trim(), a = document.getElementById('in-card-a').value.trim(), id = document.getElementById('in-card-id').value;
-        if(!q || !a) return;
-        if(id){
-            const i = decks[activeDeck].findIndex(c=>c.id==id);
-            decks[activeDeck][i].q = q; decks[activeDeck][i].a = a.split('\n'); decks[activeDeck][i].qImg = currentBase64;
-        } else {
-            decks[activeDeck].push({ q, a: a.split('\n'), qImg: currentBase64, id: Date.now(), nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: activeDeck, archived: false });
-        }
-        await dbSave(decks); clearForm(); renderEditorList();
+    function removeImg(type) {
+        if(type === 'q') { currentQImg = ""; document.getElementById('prev-q').style.display = "none"; document.getElementById('del-q').style.display = "none"; }
+        if(type === 'a') { currentAImg = ""; document.getElementById('prev-a').style.display = "none"; document.getElementById('del-a').style.display = "none"; }
     }
 
-    function renderEditorList() { document.getElementById('editor-card-list').innerHTML = decks[activeDeck].map(c => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; background:white;"><div>${c.qImg?'🖼️ ':''}${c.q}</div><div><span onclick="loadEdit(${c.id})" style="cursor:pointer; margin-right:10px;">✏️</span><span onclick="delCard(${c.id})" style="cursor:pointer; color:red;">🗑️</span></div></div>`).join(''); }
+    function saveCard() {
+        const q = document.getElementById('in-card-q').value.trim(), a = document.getElementById('in-card-a').value.trim(), id = document.getElementById('in-card-id').value;
+        if(!q || !a) return;
+        
+        let newCard = { q, a: a.split('\n'), qImg: currentQImg, aImg: currentAImg, id: id ? parseInt(id) : Date.now(), deck: activeDeck, archived: false };
+        
+        if(id){
+            const i = decks[activeDeck].findIndex(c=>c.id==id);
+            // Zachovat SRS data při editaci
+            newCard.nextReview = decks[activeDeck][i].nextReview;
+            newCard.ef = decks[activeDeck][i].ef;
+            newCard.reps = decks[activeDeck][i].reps;
+            newCard.interval = decks[activeDeck][i].interval;
+            decks[activeDeck][i] = newCard;
+        } else {
+            // Nová karta
+            newCard.nextReview = Date.now(); newCard.ef = 2.5; newCard.reps = 0; newCard.interval = 0;
+            decks[activeDeck].push(newCard);
+        }
+        dbSave(decks); clearForm(); renderEditorList();
+    }
+
     function loadEdit(id) {
         const c = decks[activeDeck].find(i=>i.id==id);
         document.getElementById('in-card-q').value = c.q; document.getElementById('in-card-a').value = c.a.join('\n'); document.getElementById('in-card-id').value = c.id;
-        if(c.qImg) { currentBase64 = c.qImg; document.getElementById('img-preview').src = c.qImg; document.getElementById('img-preview').style.display = "block"; document.getElementById('btn-del-img').style.display = "block"; } else { removeImg(); }
-    }
-    function clearForm() { document.getElementById('in-card-q').value = ""; document.getElementById('in-card-a').value = ""; document.getElementById('in-card-id').value = ""; removeImg(); }
-    async function delCard(id) { if(confirm("Smazat?")){ decks[activeDeck] = decks[activeDeck].filter(i=>i.id!=id); await dbSave(decks); renderEditorList(); } }
+        
+        currentQImg = c.qImg || ""; 
+        if(currentQImg) { document.getElementById('prev-q').src = currentQImg; document.getElementById('prev-q').style.display="block"; document.getElementById('del-q').style.display="block"; } else removeImg('q');
 
-    function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(decks)])); a.download="historie_zaloha.json"; a.click(); }
+        currentAImg = c.aImg || "";
+        if(currentAImg) { document.getElementById('prev-a').src = currentAImg; document.getElementById('prev-a').style.display="block"; document.getElementById('del-a').style.display="block"; } else removeImg('a');
+    }
+
+    function clearForm() { 
+        document.getElementById('in-card-q').value = ""; document.getElementById('in-card-a').value = ""; document.getElementById('in-card-id').value = ""; 
+        removeImg('q'); removeImg('a');
+    }
+
+    function renderEditorList() { document.getElementById('editor-card-list').innerHTML = decks[activeDeck].map(c => `<div class="list-item-edit"><div>${c.qImg?'🖼️ ':''}${c.q}</div><div><span onclick="loadEdit(${c.id})" style="cursor:pointer; margin-right:10px;">✏️</span><span onclick="delCard(${c.id})" style="cursor:pointer; color:red;">🗑️</span></div></div>`).join(''); }
+    function delCard(id) { if(confirm("Smazat?")){ decks[activeDeck] = decks[activeDeck].filter(i=>i.id!=id); dbSave(decks); renderEditorList(); } }
+
+    function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(decks)])); a.download="historie_srs.json"; a.click(); }
     async function importData(e) {
         const r = new FileReader();
         r.onload = async (v) => {
-            const imp = JSON.parse(v.target.result);
-            if (Array.isArray(imp)) {
-                const n = prompt("Název tématu?");
-                if (n) { decks[n] = imp.map(c => ({...c, deck: n, id: c.id || Date.now()+Math.random(), nextReview: Date.now()})); await dbSave(decks); location.reload(); }
-            } else { decks = Object.assign({}, decks, imp); await dbSave(decks); location.reload(); }
+            try {
+                const importedData = JSON.parse(v.target.result);
+                if (Array.isArray(importedData)) {
+                    const name = prompt("Název nového tématu?");
+                    if (name) { decks[name] = importedData.map(c => ({...c, deck: name, id: c.id || Date.now() + Math.random(), nextReview: Date.now()})); await dbSave(decks); location.reload(); }
+                } else { decks = Object.assign({}, decks, importedData); await dbSave(decks); location.reload(); }
+            } catch (err) { alert("Chyba při nahrávání."); }
         };
         r.readAsText(e.target.files[0]);
     }
     function fullReset() { if(confirm("Smazat vše?")){ indexedDB.deleteDatabase(DB_NAME); location.reload(); } }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        if(confirm("Je k dispozici nová verze aplikace. Aktualizovat nyní?")) {
+                            window.location.reload();
+                        }
+                    }
+                });
+            });
+        });
+    }
+
     init();
 </script>
 </body>

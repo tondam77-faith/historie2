@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#fdfbf7">
-    <title>Dějepis - Smart SRS v44</title>
+    <title>Dějepis - Smart SRS v46</title>
     <style>
         :root {
             --primary: #1a3a5a; --accent: #e67e22; --bg: #fdfbf7;
@@ -50,7 +50,7 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
             background-color: var(--bg);
             display: flex; flex-direction: column; align-items: center;
-            padding: 10px;
+            padding: 15px; 
         }
 
         .learning-wrapper {
@@ -64,21 +64,18 @@
         }
         .progress-container { 
             width: 100%; height: 8px; background: #ddd; border-radius: 4px; 
-            margin-bottom: 15px; overflow: hidden; flex-shrink: 0; 
+            margin-bottom: 20px; overflow: hidden; flex-shrink: 0; 
         }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
 
         /* --- KARTA --- */
         .card-area {
-            flex: 1; display: flex; flex-direction: column; justify-content: center; 
-            overflow: visible; perspective: 1200px;
+            flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
+            overflow: visible; perspective: 1200px; padding-top: 10px;
         }
 
         .card-box { 
-            width: 100%; 
-            height: 380px; /* FIXNÍ VÝŠKA */
-            margin: 0 auto; 
-            cursor: pointer; 
+            width: 100%; height: 380px; margin: 0 auto; cursor: pointer; 
         }
         
         .card { 
@@ -91,7 +88,7 @@
         .card-front, .card-back {
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
             display: flex; flex-direction: column; justify-content: center; 
-            padding: 35px; border-radius: 24px;
+            padding: 30px; border-radius: 24px;
             box-shadow: 0 10px 40px rgba(26, 58, 90, 0.15); 
             overflow-y: auto; 
             background: var(--card-front); color: var(--primary); border: 1px solid #f0f0f0;
@@ -167,14 +164,14 @@
         <div class="app-footer">
             <div id="help-box" class="help-box hidden">
                 <h4>🧠 Jak se učit chytře?</h4>
-                <p><strong>Znovu:</strong> Vůbec jsem to nevěděl. (Ukážu ti to hned)</p>
+                <p><strong>Znovu:</strong> Vůbec jsem to nevěděl. (Vrátím ti to hned)</p>
                 <p><strong>Těžké:</strong> Vzpomínal jsem si těžko. (Ukážu za 10 minut)</p>
-                <p><strong>Dobré:</strong> Věděl jsem to, ale musel jsem přemýšlet. (Ukážu zítra)</p>
-                <p><strong>Snadné:</strong> Vystřelil jsem to hned. (Ukážu až za pár dní)</p>
+                <p><strong>Dobré:</strong> Věděl jsem to. (Ukážu zítra)</p>
+                <p><strong>Snadné:</strong> Vystřelil jsem to hned. (Ukážu za 4 dny)</p>
                 <button class="btn-utility" style="width:100%" onclick="document.getElementById('help-box').classList.add('hidden')">Rozumím</button>
             </div>
             <button onclick="document.getElementById('help-box').classList.remove('hidden')" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold; font-size:0.9rem; margin-bottom:10px;">❓ Jak to funguje?</button>
-            <div id="app-version" style="font-size: 0.7rem; color: #bdc3c7;">Verze aplikace: v44.0</div>
+            <div id="app-version" style="font-size: 0.7rem; color: #bdc3c7;">Verze aplikace: v46.0</div>
         </div>
     </div>
 
@@ -197,7 +194,7 @@
 
             <div class="controls-wrapper">
                 <div id="ui-btns-container" class="hidden">
-                    <button class="srs-btn b-0" onclick="handleSRS(0)">Znovu<span id="l-again">1m</span></button>
+                    <button class="srs-btn b-0" onclick="handleSRS(0)">Znovu<span id="l-again">&lt;1m</span></button>
                     <button class="srs-btn b-1" onclick="handleSRS(3)">Těžké<span id="l-hard">10m</span></button>
                     <button class="srs-btn b-2" onclick="handleSRS(4)">Dobré<span id="l-good">1d</span></button>
                     <button class="srs-btn b-3" onclick="handleSRS(5)">Snadné<span id="l-easy">4d</span></button>
@@ -219,7 +216,7 @@
 
 <script>
     let db;
-    const APP_VERSION_DISPLAY = "v44.0"; 
+    const APP_VERSION_DISPLAY = "v46.0"; 
     const DB_NAME = "HistorySRSDatabase", DB_VERSION = 1;
 
     async function dbOpen() { return new Promise((resolve) => { const req = indexedDB.open(DB_NAME, DB_VERSION); req.onupgradeneeded = (e) => e.target.result.createObjectStore("state"); req.onsuccess = (e) => { db = e.target.result; resolve(); }; }); }
@@ -228,41 +225,9 @@
 
     let decks = {}, sessionCards = [], sessionIdx = 0, sessionLimit = 20, transitioning = false;
 
-    // --- ZÁKLADNÍ OBSAH ---
     const INITIAL_CONTENT = {
         "Arabská říše": [
-            { q: "Kdo byli původní obyvatelé Arabského poloostrova?", a: ["Kočovní pastevci – beduíni."], id: 1, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Co znamená v překladu slovo islám?", a: ["Odevzdanost Bohu."], id: 2, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Ve kterém století se zrodil islám?", a: ["V 7. století."], id: 3, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Kdo je podle islámu jediný Bůh a kdo je jeho prorok?", a: ["Bůh: Alláh", "Prorok: Muhammad (Mohamed)"], id: 4, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Jak se jmenuje posvátná kniha muslimů?", a: ["Korán."], id: 5, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Vyjmenuj 5 pilířů islámu.", a: ["Víra v jednoho Boha - Alláha", "Modlitba 5x denně", "Almužna chudým", "Půst v měsíci Ramadánu", "Pouť do Mekky jednou za život"], id: 6, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Co je to chalífát?", a: ["Jednotná arabská říše v čele s chalífou."], id: 7, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Kam až sahala Arabská říše v době rozmachu?", a: ["Od Atlantiku přes severní Afriku až k Indii."], id: 8, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Které evropské státy leží na Pyrenejském poloostrově?", a: ["Španělsko", "Portugalsko"], id: 9, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Kdo byl Ibrahim ibn Jákub?", a: ["Kupec, který v 10. stol. napsal první popis Prahy."], id: 10, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "V jakých vědách Arabové vynikali?", a: ["Matematika a fyzika", "Zeměpis", "Lékařství"], id: 11, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Jaké nové plodiny přinesli Arabové do Evropy?", a: ["Rýže", "Bavlna", "Citrony a pomeranče"], id: 12, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Proč mají islámské stavby jen geometrické vzory?", a: ["Protože Korán zakazuje zobrazovat lidské postavy."], id: 13, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Jak se nazývá štíhlá věž u mešity?", a: ["Minaret."], id: 14, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Které město je nejposvátnější pro muslimy?", a: ["Mekka (s chrámem Ka'ba)."], id: 15, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false }
-        ],
-        "Slované a Sámova říše": [
-            { q: "Kdy přišli Slované na naše území?", a: ["V 5. až 6. století.", "V rámci tzv. druhé vlny stěhování národů."], id: 401, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Kde byla původní pravlast Slovanů?", a: ["Ve východní Evropě.", "Mezi řekami Vislou a Dněprem (severně od Karpat)."], id: 402, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Do kterých tří směrů se Slované vydali z pravlasti?", a: ["Na jih (Balkán), na západ (střední Evropa) a na východ."], id: 403, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Jak se nazýval typický slovanský dům?", a: ["Polozemnice.", "Částečně zahloubená chata s dřevěnou konstrukcí a střechou."], id: 404, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "V čem spočívalo dvojpolní hospodářství?", a: ["Pole bylo rozděleno na dvě části.", "Jedna polovina se osela (jaro) a druhá odpočívala (úhor)."], id: 405, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "V co věřili staří Slované před přijetím křesťanství?", a: ["Byli pohané.", "Uctívali přírodní síly a různé bohy (např. Perun nebo Svantovít)."], id: 406, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Kdo byl Sámo?", a: ["Francký kupec.", "Slované si ho zvolili za svého vůdce po vítězství nad Avary."], id: 407, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Proč vznikla Sámova říše?", a: ["Jako kmenový svaz pro společnou obranu.", "Sloužila k ochraně proti nájezdům Avarů a útokům Franků."], id: 408, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Ve kterém století existovala Sámova říše?", a: ["V 7. století (přibližně první polovina)."], id: 409, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Jak se jmenovala vítězná bitva Slovanů proti Frankům roku 631?", a: ["Bitva u Wogastisburgu."], id: 410, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Kterého franského krále Sámo porazil v bitvě u Wogastisburgu?", a: ["Dagoberta I."], id: 411, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Který jediný písemný pramen nás informuje o Sámově říši?", a: ["Fredegarova kronika."], id: 412, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Co se stalo s říší po Sámově smrti?", a: ["Kmenový svaz se rozpadl.", "Sámova říše jako celek zanikla."], id: 413, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Které řemeslné předměty se dochovaly díky archeologickým vykopávkám?", a: ["Šperky (např. náušnice), ostruhy, zbraně a zemědělské nástroje."], id: 414, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Vyjmenuj alespoň tři první slovanské státy, které vznikaly po stěhování národů.", a: ["Bulharsko, Velká Morava, Český stát, Polsko nebo Kyjevská Rus."], id: 415, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false }
+            { q: "Kdo byli původní obyvatelé Arabského poloostrova?", a: ["Kočovní pastevci – beduíni."], id: 1, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false }
         ]
     };
 
@@ -275,15 +240,9 @@
         renderMenu();
     }
 
-    // ... ZBYTEK KÓDU JS ...
     function renderMenu() {
         const list = document.getElementById('deck-list'), arch = document.getElementById('archived-list');
         list.innerHTML = ""; arch.innerHTML = ""; let hasArch = false;
-        
-        if(Object.keys(decks).length === 0) {
-            list.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>Zatím tu nic není.<br>Nahrajte balíček nebo vytvořte nový!</div>";
-        }
-
         Object.keys(decks).forEach(n => {
             const isA = decks[n][0]?.archived;
             const due = decks[n].filter(c => c.nextReview <= Date.now()).length;
@@ -306,8 +265,6 @@
         let dueCards = allCards.filter(c => c.nextReview <= Date.now());
         dueCards.sort((a,b) => a.nextReview - b.nextReview);
         sessionCards = dueCards.slice(0, sessionLimit);
-
-        // SHUFFLE
         if(sessionCards.length > 1) sessionCards.sort(() => Math.random() - 0.5);
 
         if(!sessionCards.length) { alert("Dnes nemáš co opakovat!"); return; }
@@ -353,21 +310,32 @@
         }, 600);
     }
 
-    // --- SRS LOGIKA S OPRAVOU DAT ---
+    // --- SRS LOGIKA (VÁŠ RYTMUS: 10m - 1d - 4d) ---
     function handleSRS(q) {
         if(transitioning) return; let c = sessionCards[sessionIdx];
         
-        // ZAJIŠTĚNÍ DAT
         c.reps = c.reps || 0; c.interval = c.interval || 0; c.ef = c.ef || 2.5;
 
         if(q < 3){ 
             c.reps = 0; c.interval = 0; c.nextReview = Date.now();
-            sessionCards.push(c); // Opakování chyby
+            sessionCards.push(c); // Opakovat ihned
         }
         else {
-            if(c.reps === 0) c.interval = (q===3 ? 0.007 : (q===4 ? 1 : 4));
-            else if(c.reps === 1) c.interval = 6; else c.interval = Math.round(c.interval * c.ef);
-            c.reps++; c.ef = Math.max(1.3, c.ef + (0.1 - (5-q)*(0.08 + (5-q)*0.02))); c.nextReview = Date.now() + (c.interval * 86400000);
+            if(c.reps === 0) {
+                // PRVNÍ ÚSPĚCH
+                if(q === 3) c.interval = 0.007; // Těžké -> 10 min
+                else if(q === 4) c.interval = 1; // Dobré -> 1 den
+                else c.interval = 4; // Snadné -> 4 dny
+            }
+            else {
+                // DALŠÍ OPAKOVÁNÍ (násobíme)
+                if(c.interval < 0.01) c.interval = 1; // Z 10 min rovnou na 1 den
+                else c.interval = Math.round(c.interval * c.ef);
+            }
+            
+            c.reps++; 
+            c.ef = Math.max(1.3, c.ef + (0.1 - (5-q)*(0.08 + (5-q)*0.02))); 
+            c.nextReview = Date.now() + (c.interval * 86400000);
         }
         
         const idx = decks[c.deck].findIndex(i => i.id === c.id); decks[c.deck][idx] = c; dbSave(decks); 
@@ -381,16 +349,19 @@
         return all.filter(c => c.nextReview <= Date.now()).length > 0;
     }
 
-    // --- OPRAVA TLAČÍTEK (NaN FIX) ---
     function updateLabels(c) {
         const reps = c.reps || 0; const interval = c.interval || 0; const ef = c.ef || 2.5;
         const getNextText = (quality) => {
             let nextI = 0;
             if (quality < 3) return "<1m";
-            if (reps === 0) { nextI = (quality === 3 ? 0.007 : (quality === 4 ? 1 : 4)); } 
-            else {
-                let nextEf = Math.max(1.3, ef + (0.1 - (5-quality)*(0.08 + (5-quality)*0.02)));
-                if (reps === 1) nextI = 6; else nextI = interval * nextEf;
+            if (reps === 0) {
+                // PŘESNÉ ZOBRAZENÍ PRO NOVÉ KARTY
+                if(quality === 3) nextI = 0.007;
+                else if(quality === 4) nextI = 1;
+                else nextI = 4;
+            } else {
+                if(interval < 0.01) nextI = 1;
+                else nextI = interval * (Math.max(1.3, ef + (0.1 - (5-quality)*(0.08 + (5-quality)*0.02))));
             }
             if (nextI < 1) { let mins = Math.round(nextI * 24 * 60); return mins + "m"; } 
             else { return Math.round(nextI) + "d"; }
@@ -401,36 +372,9 @@
         document.getElementById('l-easy').innerText = getNextText(5);
     }
 
-    // --- SPRÁVA DAT ---
     function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(decks)])); a.download="historie_srs.json"; a.click(); }
-    
-    async function importData(e) { 
-        const r = new FileReader(); 
-        r.onload = async (v) => { 
-            try { 
-                const importedData = JSON.parse(v.target.result); 
-                if (Array.isArray(importedData)) { 
-                    const name = prompt("Název nového tématu?"); 
-                    if (name) { 
-                        // Fix ID and SRS Data
-                        decks[name] = importedData.map(c => ({...c, deck: name, id: c.id || Date.now() + Math.random(), nextReview: Date.now(), reps:0, interval:0, ef:2.5})); 
-                        await dbSave(decks); location.reload(); 
-                    } 
-                } else { 
-                    decks = Object.assign({}, decks, importedData); 
-                    await dbSave(decks); location.reload(); 
-                } 
-            } catch (err) { alert("Chyba při nahrávání."); } 
-        }; 
-        r.readAsText(e.target.files[0]); 
-    }
-    
-    function fullReset() { 
-        if(confirm("Smazat vše?")){ 
-            indexedDB.deleteDatabase(DB_NAME); 
-            setTimeout(() => location.reload(), 500); // Počkat na smazání
-        } 
-    }
+    async function importData(e) { const r = new FileReader(); r.onload = async (v) => { try { const importedData = JSON.parse(v.target.result); if (Array.isArray(importedData)) { const name = prompt("Název nového tématu?"); if (name) { decks[name] = importedData.map(c => ({...c, deck: name, id: c.id || Date.now() + Math.random(), nextReview: Date.now(), reps:0, interval:0, ef:2.5})); await dbSave(decks); location.reload(); } } else { decks = Object.assign({}, decks, importedData); await dbSave(decks); location.reload(); } } catch (err) { alert("Chyba při nahrávání."); } }; r.readAsText(e.target.files[0]); }
+    function fullReset() { if(confirm("Smazat vše?")){ indexedDB.deleteDatabase(DB_NAME); location.reload(); } }
 
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(reg => { reg.addEventListener('updatefound', () => { const newWorker = reg.installing; newWorker.addEventListener('statechange', () => { if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { if(confirm("Je k dispozici nová verze aplikace. Aktualizovat nyní?")) { window.location.reload(); } } }); }); }); }
 

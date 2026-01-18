@@ -1,4 +1,4 @@
-const CACHE_NAME = 'historie-srs-v49'; // ZMĚNA NA v49
+const CACHE_NAME = 'historie-srs-v50';
 const ASSETS = [
   './',
   './index.html',

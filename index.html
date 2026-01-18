@@ -273,43 +273,8 @@
 
     let decks = {}, sessionCards = [], sessionIdx = 0, sessionLimit = 20, transitioning = false;
 
-    // --- ZÁKLADNÍ OBSAH (Arabové + Slované) ---
-    const INITIAL_CONTENT = {
-        "Arabská říše": [
-            { q: "Kdo byli původní obyvatelé Arabského poloostrova?", a: ["Kočovní pastevci – beduíni."], id: 1, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Co znamená v překladu slovo islám?", a: ["Odevzdanost Bohu."], id: 2, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Ve kterém století se zrodil islám?", a: ["V 7. století."], id: 3, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Kdo je podle islámu jediný Bůh a kdo je jeho prorok?", a: ["Bůh: Alláh", "Prorok: Muhammad (Mohamed)"], id: 4, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Jak se jmenuje posvátná kniha muslimů?", a: ["Korán."], id: 5, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Vyjmenuj 5 pilířů islámu.", a: ["Víra v jednoho Boha - Alláha", "Modlitba 5x denně", "Almužna chudým", "Půst v měsíci Ramadánu", "Pouť do Mekky jednou za život"], id: 6, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Co je to chalífát?", a: ["Jednotná arabská říše v čele s chalífou."], id: 7, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Kam až sahala Arabská říše v době rozmachu?", a: ["Od Atlantiku přes severní Afriku až k Indii."], id: 8, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Které evropské státy leží na Pyrenejském poloostrově?", a: ["Španělsko", "Portugalsko"], id: 9, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Kdo byl Ibrahim ibn Jákub?", a: ["Kupec, který v 10. stol. napsal první popis Prahy."], id: 10, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "V jakých vědách Arabové vynikali?", a: ["Matematika a fyzika", "Zeměpis", "Lékařství"], id: 11, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Jaké nové plodiny přinesli Arabové do Evropy?", a: ["Rýže", "Bavlna", "Citrony a pomeranče"], id: 12, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Proč mají islámské stavby jen geometrické vzory?", a: ["Protože Korán zakazuje zobrazovat lidské postavy."], id: 13, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Jak se nazývá štíhlá věž u mešity?", a: ["Minaret."], id: 14, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false },
-            { q: "Které město je nejposvátnější pro muslimy?", a: ["Mekka (s chrámem Ka'ba)."], id: 15, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Arabská říše", archived: false }
-        ],
-        "Slované a Sámova říše": [
-            { q: "Kdy přišli Slované na naše území?", a: ["V 5. až 6. století.", "V rámci tzv. druhé vlny stěhování národů."], id: 401, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Kde byla původní pravlast Slovanů?", a: ["Ve východní Evropě.", "Mezi řekami Vislou a Dněprem (severně od Karpat)."], id: 402, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Do kterých tří směrů se Slované vydali z pravlasti?", a: ["Na jih (Balkán), na západ (střední Evropa) a na východ."], id: 403, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Jak se nazýval typický slovanský dům?", a: ["Polozemnice.", "Částečně zahloubená chata s dřevěnou konstrukcí a střechou."], id: 404, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "V čem spočívalo dvojpolní hospodářství?", a: ["Pole bylo rozděleno na dvě části.", "Jedna polovina se osela (jaro) a druhá odpočívala (úhor)."], id: 405, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "V co věřili staří Slované před přijetím křesťanství?", a: ["Byli pohané.", "Uctívali přírodní síly a různé bohy (např. Perun nebo Svantovít)."], id: 406, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Kdo byl Sámo?", a: ["Francký kupec.", "Slované si ho zvolili za svého vůdce po vítězství nad Avary."], id: 407, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Proč vznikla Sámova říše?", a: ["Jako kmenový svaz pro společnou obranu.", "Sloužila k ochraně proti nájezdům Avarů a útokům Franků."], id: 408, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Ve kterém století existovala Sámova říše?", a: ["V 7. století (přibližně první polovina)."], id: 409, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Jak se jmenovala vítězná bitva Slovanů proti Frankům roku 631?", a: ["Bitva u Wogastisburgu."], id: 410, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Kterého franského krále Sámo porazil v bitvě u Wogastisburgu?", a: ["Dagoberta I."], id: 411, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Který jediný písemný pramen nás informuje o Sámově říši?", a: ["Fredegarova kronika."], id: 412, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Co se stalo s říší po Sámově smrti?", a: ["Kmenový svaz se rozpadl.", "Sámova říše jako celek zanikla."], id: 413, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Které řemeslné předměty se dochovaly díky archeologickým vykopávkám?", a: ["Šperky (např. náušnice), ostruhy, zbraně a zemědělské nástroje."], id: 414, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false },
-            { q: "Vyjmenuj alespoň tři první slovanské státy, které vznikaly po stěhování národů.", a: ["Bulharsko, Velká Morava, Český stát, Polsko nebo Kyjevská Rus."], id: 415, nextReview: Date.now(), ef: 2.5, reps: 0, interval: 0, deck: "Slované a Sámova říše", archived: false }
-        ]
-    };
+    // --- ZÁKLADNÍ OBSAH (Učitelská verze může mít prázdno, zde pro jistotu nechávám prázdné) ---
+    const INITIAL_CONTENT = {};
 
     async function init() {
         await dbOpen();
@@ -323,16 +288,21 @@
     function renderMenu() {
         const list = document.getElementById('deck-list'), arch = document.getElementById('archived-list');
         list.innerHTML = ""; arch.innerHTML = ""; let hasArch = false;
+        
+        if(Object.keys(decks).length === 0) {
+            list.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>Zatím tu nic není.<br>Nahrajte balíček nebo vytvořte nový!</div>";
+        }
+
         Object.keys(decks).forEach(n => {
             const isA = decks[n][0]?.archived;
             const due = decks[n].filter(c => c.nextReview <= Date.now()).length;
-            
-            // OPRAVA KLIKÁNÍ NA EDITACI
+            // OPRAVA KLIKÁNÍ NA EDITACI - Celo tlačítko s tužkou
             const h = `<div class="deck-option">
                 <input type="checkbox" value="${n}" ${isA?'':'checked'}>
                 <div class="deck-info" onclick="openEditor('${n}')">
-                    <span class="deck-name">${n} <span class="edit-icon">✏️</span></span>
-                    <span style="font-size:0.75rem; color:#666;">Karet: ${decks[n].length} | Opakování: ${due}</span>
+                    <span class="deck-name">${n}</span>
+                    <span class="edit-icon">✏️</span>
+                    <div style="font-size:0.75rem; color:#666; margin-left:auto;">${decks[n].length} ks</div>
                 </div>
                 <button onclick="toggleArchive('${n}')" style="background:none; border:none; cursor:pointer; font-size:1.4rem; margin-left:10px;">${isA?'📤':'📥'}</button>
                 </div>`;
@@ -356,14 +326,12 @@
         if(!sessionCards.length) { alert("Dnes nemáš co opakovat!"); return; }
         
         sessionIdx = 0; 
-        document.body.classList.add('learning-active');
         document.getElementById('ui-menu').classList.add('hidden'); 
         document.getElementById('ui-learning').classList.remove('hidden');
         renderCard();
     }
 
     function closeLearning() { 
-        document.body.classList.remove('learning-active');
         document.getElementById('ui-learning').classList.add('hidden'); 
         document.getElementById('ui-done').classList.add('hidden');
         document.getElementById('ui-menu').classList.remove('hidden');
@@ -372,7 +340,6 @@
 
     function renderCard() {
         if (sessionIdx >= sessionCards.length) { 
-            document.body.classList.remove('learning-active');
             document.getElementById('ui-learning').classList.add('hidden'); 
             const hasMore = checkRemainingDue();
             document.getElementById('btn-continue').classList.toggle('hidden', !hasMore);
@@ -411,15 +378,9 @@
             sessionCards.push(c); 
         }
         else {
-            if(c.reps === 0) {
-                if(q === 3) c.interval = 0.007; // 10 min
-                else if(q === 4) c.interval = 1; // 1 den
-                else c.interval = 4; // 4 dny
-            }
-            else {
-                if(c.interval < 0.01) c.interval = 1; 
-                else c.interval = Math.round(c.interval * c.ef);
-            }
+            if(c.reps === 0) c.interval = (q===3 ? 0.007 : (q===4 ? 1 : 4));
+            else if(c.reps === 1) { if(q === 3) c.interval = 3; else if(q === 4) c.interval = 6; else c.interval = 10; }
+            else c.interval = Math.round(c.interval * c.ef);
             c.reps++; c.ef = Math.max(1.3, c.ef + (0.1 - (5-q)*(0.08 + (5-q)*0.02))); c.nextReview = Date.now() + (c.interval * 86400000);
         }
         
@@ -438,13 +399,11 @@
         const getNextText = (quality) => {
             let nextI = 0;
             if (quality < 3) return "<1m";
-            if (reps === 0) { 
-                if(quality === 3) nextI = 0.007; 
-                else if(quality === 4) nextI = 1; 
-                else nextI = 4; 
-            } else {
-                if(interval < 0.01) nextI = 1;
-                else nextI = interval * (Math.max(1.3, ef + (0.1 - (5-quality)*(0.08 + (5-quality)*0.02))));
+            if (reps === 0) { if(quality === 3) nextI = 0.007; else if(quality === 4) nextI = 1; else nextI = 4; } 
+            else {
+                let nextEf = Math.max(1.3, ef + (0.1 - (5-quality)*(0.08 + (5-quality)*0.02)));
+                if (reps === 1) { if(quality === 3) nextI = 3; else if(quality === 4) nextI = 6; else nextI = 10; } 
+                else nextI = interval * nextEf;
             }
             if (nextI < 1) { let mins = Math.round(nextI * 24 * 60); return mins + "m"; } 
             else { return Math.round(nextI) + "d"; }
@@ -455,6 +414,7 @@
         document.getElementById('l-easy').innerText = getNextText(5);
     }
 
+    // --- EDITOR LOGIC ---
     let activeDeck = "", currentQImg = "", currentAImg = "";
     function openCreator() { activeDeck = ""; switchView('ui-editor'); document.getElementById('editor-title').innerText = "Nové téma"; document.getElementById('in-deck-name').value = ""; document.getElementById('in-deck-name').disabled = false; document.getElementById('card-form').classList.add('hidden'); document.getElementById('btn-next').classList.remove('hidden'); }
     function openEditor(n) { activeDeck = n; switchView('ui-editor'); document.getElementById('editor-title').innerText = "Upravit: " + n; document.getElementById('in-deck-name').value = n; confirmName(); }

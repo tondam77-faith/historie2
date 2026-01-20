@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Učitelský Editor - Dějepis SRS</title>
     <style>
-        :root { --primary: #1a3a5a; --accent: #e67e22; --bg: #f4f7f6; --text: #2c3e50; }
+        :root { --primary: #1a3a5a; --accent: #e67e22; --bg: #f4f7f6; --text: #2c3e50; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; }
         
         /* HEADER */
@@ -15,13 +15,13 @@
         button { cursor: pointer; padding: 8px 15px; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; }
         .btn-main { background: var(--primary); color: white; } .btn-main:hover { background: #132c45; }
         .btn-sec { background: white; border: 1px solid #ccc; color: #555; } .btn-sec:hover { background: #f0f0f0; }
-        .btn-danger { background: #fff; border: 1px solid #e74c3c; color: #e74c3c; } .btn-danger:hover { background: #e74c3c; color: white; }
-        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: #fff; border: 1px solid var(--danger); color: var(--danger); } .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-ai { background: #e6f4ea; border: 1px solid #ceead6; color: #1e8e3e; } .btn-ai:hover { background: #dceid5; }
 
         /* LAYOUT */
         .workspace { display: flex; flex: 1; overflow: hidden; }
         
-        /* SIDEBAR (DECKS) */
+        /* SIDEBAR */
         .sidebar { width: 250px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
         .deck-list { flex: 1; overflow-y: auto; padding: 10px; }
         .deck-item { padding: 12px; margin-bottom: 5px; cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; }
@@ -31,20 +31,26 @@
 
         /* MAIN CONTENT */
         .main-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
-        .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
         
+        .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; flex-wrap: wrap; gap: 10px;}
+        
+        /* SEARCH BAR */
+        .search-box { flex-grow: 1; margin: 0 20px; position: relative; }
+        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border-radius: 20px; border: 1px solid #ccc; outline: none; }
+        .search-box::before { content: "🔍"; position: absolute; left: 10px; top: 10px; opacity: 0.5; }
+
         /* TABLE */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; font-weight: 600; color: #666; font-size: 0.9rem; }
         tr:hover { background: #fdfdfd; }
         
-        .col-id { width: 50px; color: #999; font-size: 0.8rem; }
-        .col-img { width: 60px; text-align: center; }
-        .thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; background: #eee; }
-        .col-actions { width: 140px; text-align: right; }
+        .col-id { width: 40px; color: #999; font-size: 0.8rem; }
+        .col-img { width: 50px; text-align: center; }
+        .thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; background: #eee; }
+        .col-actions { width: 160px; text-align: right; white-space: nowrap; }
         
-        .action-btn { background: none; border: none; font-size: 1.1rem; padding: 5px; opacity: 0.6; }
+        .action-btn { background: none; border: none; font-size: 1.1rem; padding: 5px; opacity: 0.6; cursor: pointer; }
         .action-btn:hover { opacity: 1; transform: scale(1.1); }
 
         /* MODAL */
@@ -59,32 +65,35 @@
         input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; box-sizing: border-box; }
         textarea { resize: vertical; min-height: 80px; }
 
+        .ai-box { background: #f4f7f6; padding: 15px; border-radius: 8px; border: 1px solid #ddd; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin-bottom: 15px; color: #333; }
+
         .img-drop-zone { 
             border: 2px dashed #ccc; padding: 10px; text-align: center; border-radius: 6px; 
             margin-top: 5px; cursor: pointer; transition: 0.2s; background: #fafafa;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px;
         }
         .img-drop-zone:hover { border-color: var(--primary); background: #eef4f9; }
         .preview-large { max-height: 100px; max-width: 100%; display: block; margin: 0 auto; }
         
         .hidden { display: none; }
+        .status-missing { color: #ccc; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🎓 Učitelský Editor <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">v1.0 (Kompatibilní s v58)</span></h1>
+    <h1>🎓 Učitelský Editor <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">v1.2</span></h1>
     <div class="top-btn-group">
+        <button class="btn-ai" onclick="openAiModal()">🤖 AI Prompt</button>
         <button class="btn-sec" onclick="document.getElementById('file-in').click()">📂 Nahrát JSON</button>
-        <button class="btn-main" onclick="exportData()">💾 Uložit JSON (Pro žáky)</button>
+        <button class="btn-main" onclick="exportData()">💾 Uložit JSON</button>
     </div>
     <input type="file" id="file-in" accept=".json" style="display:none" onchange="importData(event)">
 </header>
 
 <div class="workspace">
     <div class="sidebar">
-        <div class="deck-list" id="deck-list">
-            </div>
+        <div class="deck-list" id="deck-list"></div>
         <div class="sidebar-footer">
             <button class="btn-main" style="width:100%" onclick="addNewDeck()">➕ Nové téma</button>
         </div>
@@ -101,7 +110,7 @@
     <div class="modal">
         <div class="modal-header">
             <span id="modal-title">Editace karty</span>
-            <button onclick="closeModal()" style="background:none; border:none; font-size:1.2rem;">✖</button>
+            <button onclick="closeModal('modal-overlay')" style="background:none; border:none; font-size:1.2rem;">✖</button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="edit-id">
@@ -110,7 +119,7 @@
                 <label>Otázka</label>
                 <input type="text" id="edit-q" placeholder="Znění otázky...">
                 <div class="img-drop-zone" id="zone-q" tabindex="0">
-                    <span id="txt-q">📷 Klikni a vlož obrázek (Ctrl+V)</span>
+                    <span id="txt-q">📷 Vložit obrázek (Ctrl+V)</span>
                     <img id="prev-q" class="preview-large hidden">
                     <button class="btn-danger hidden" id="del-q" style="padding:2px 6px; font-size:0.7rem;">X</button>
                 </div>
@@ -120,15 +129,49 @@
                 <label>Odpověď (každý řádek = jedna odrážka)</label>
                 <textarea id="edit-a" placeholder="Odpověď..."></textarea>
                 <div class="img-drop-zone" id="zone-a" tabindex="0">
-                    <span id="txt-a">📷 Klikni a vlož obrázek (Ctrl+V)</span>
+                    <span id="txt-a">📷 Vložit obrázek (Ctrl+V)</span>
                     <img id="prev-a" class="preview-large hidden">
                     <button class="btn-danger hidden" id="del-a" style="padding:2px 6px; font-size:0.7rem;">X</button>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-sec" onclick="closeModal()">Zrušit</button>
+            <button class="btn-sec" onclick="closeModal('modal-overlay')">Zrušit</button>
             <button class="btn-main" onclick="saveCard()">Uložit kartu</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="ai-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <span>🤖 Generátor otázek</span>
+            <button onclick="closeModal('ai-modal')" style="background:none; border:none; font-size:1.2rem;">✖</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-top:0; font-size:0.9rem; color:#666;">Zkopírujte tento text, vložte ho do ChatGPT/Gemini a pouze doplňte téma.</p>
+            <div class="ai-box" id="ai-prompt-text">Vytvoř mi sadu 10 otázek na téma [DOPLŇ TÉMA] pro mou aplikaci.
+Výstup musí být pouze čistý JSON kód v následujícím formátu:
+
+1. Odpověď ("a") musí být vždy pole řetězců (list).
+2. Přidej prázdná pole "qImg" a "aImg".
+3. Nepoužívej markdown (žádné ```json).
+
+Šablona:
+{
+  "Název Tématu": [
+    {
+      "q": "Otázka?",
+      "a": ["Odpověď 1", "Odpověď 2"],
+      "qImg": "",
+      "aImg": ""
+    }
+  ]
+}</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-sec" onclick="closeModal('ai-modal')">Zavřít</button>
+            <button class="btn-main" onclick="copyAiPrompt()">📋 Kopírovat do schránky</button>
         </div>
     </div>
 </div>
@@ -137,19 +180,15 @@
     let decks = {};
     let currentDeck = null;
     let editingCardId = null;
-    
-    // Dočasné úložiště obrázků v modalu
     let tempImgQ = "";
     let tempImgA = "";
+    let searchTerm = "";
 
-    // --- 1. START A NAČTENÍ DAT ---
-    // Zkusíme načíst z LocalStorage (pro pohodlí učitele), jinak prázdné
+    // START
     const saved = localStorage.getItem("teacher_decks_v1");
-    if (saved) {
-        try { decks = JSON.parse(saved); renderDeckList(); } catch(e) {}
-    }
+    if (saved) { try { decks = JSON.parse(saved); renderDeckList(); } catch(e) {} }
 
-    // --- 2. SPRÁVA TÉMAT (LEVÝ PANEL) ---
+    // RENDER
     function renderDeckList() {
         const list = document.getElementById('deck-list');
         list.innerHTML = "";
@@ -164,21 +203,18 @@
 
     function addNewDeck() {
         const name = prompt("Název nového tématu:");
-        if (name && !decks[name]) {
-            decks[name] = [];
-            selectDeck(name);
-            saveState();
-        }
+        if (name && !decks[name]) { decks[name] = []; selectDeck(name); saveState(); }
     }
 
     function selectDeck(name) {
         currentDeck = name;
+        searchTerm = ""; // reset search
         renderDeckList();
         renderMainArea();
     }
 
     function deleteDeck() {
-        if(confirm(`Opravdu smazat celé téma "${currentDeck}"?`)) {
+        if(confirm(`Smazat téma "${currentDeck}"?`)) {
             delete decks[currentDeck];
             currentDeck = null;
             renderDeckList();
@@ -187,7 +223,6 @@
         }
     }
 
-    // --- 3. HLAVNÍ OBLAST (TABULKA) ---
     function renderMainArea() {
         if (!currentDeck) return;
         const area = document.getElementById('main-area');
@@ -195,59 +230,59 @@
         let html = `
             <div class="deck-header">
                 <h2 style="margin:0;">${currentDeck}</h2>
+                <div class="search-box">
+                    <input type="text" placeholder="Hledat otázku..." value="${searchTerm}" onkeyup="handleSearch(this.value)">
+                </div>
                 <div>
                     <button class="btn-main" onclick="openModal()">➕ Přidat kartu</button>
                     <button class="btn-danger" onclick="deleteDeck()">🗑️ Smazat téma</button>
                 </div>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th class="col-id">ID</th>
-                        <th class="col-img">Obr</th>
-                        <th>Otázka</th>
-                        <th>Odpověď</th>
-                        <th class="col-img">Obr</th>
-                        <th class="col-actions">Akce</th>
-                    </tr>
-                </thead>
+                <thead><tr><th class="col-id">ID</th><th class="col-img">Obr</th><th>Otázka</th><th>Odpověď</th><th class="col-img">Obr</th><th class="col-actions">Akce</th></tr></thead>
                 <tbody>
         `;
-
+        
         decks[currentDeck].forEach((card, index) => {
+            // Filtrace
+            if (searchTerm && !card.q.toLowerCase().includes(searchTerm.toLowerCase())) return;
+
             const aText = Array.isArray(card.a) ? card.a.join(", ") : card.a;
-            const qThumb = card.qImg ? `<img src="${card.qImg}" class="thumb">` : '';
-            const aThumb = card.aImg ? `<img src="${card.aImg}" class="thumb">` : '';
+            const qThumb = card.qImg ? `<img src="${card.qImg}" class="thumb">` : '<span class="status-missing">-</span>';
+            const aThumb = card.aImg ? `<img src="${card.aImg}" class="thumb">` : '<span class="status-missing">-</span>';
             
-            html += `
-                <tr>
+            html += `<tr>
                     <td class="col-id">${index+1}</td>
                     <td class="col-img">${qThumb}</td>
                     <td>${card.q}</td>
-                    <td><div style="max-height:50px; overflow:hidden; text-overflow:ellipsis;">${aText}</div></td>
+                    <td><div style="max-height:50px; overflow:hidden;">${aText}</div></td>
                     <td class="col-img">${aThumb}</td>
                     <td class="col-actions">
                         <button class="action-btn" onclick="moveCard(${index}, -1)" title="Nahoru">⬆️</button>
                         <button class="action-btn" onclick="moveCard(${index}, 1)" title="Dolů">⬇️</button>
+                        <button class="action-btn" onclick="duplicateCard(${index})" title="Duplikovat">📋</button>
                         <button class="action-btn" onclick="openModal(${index})" title="Upravit">✏️</button>
                         <button class="action-btn" style="color:red;" onclick="removeCard(${index})" title="Smazat">🗑️</button>
-                    </td>
-                </tr>
-            `;
+                    </td></tr>`;
         });
-
         html += `</tbody></table>`;
         area.innerHTML = html;
+        
+        // Focus zpět do inputu pokud se hledá
+        if(searchTerm) {
+            const input = document.querySelector('.search-box input');
+            if(input) { input.focus(); }
+        }
     }
 
-    // --- 4. MANIPULACE S KARTAMI ---
+    function handleSearch(val) {
+        searchTerm = val;
+        renderMainArea();
+    }
+
+    // ACTIONS
     function removeCard(index) {
-        if(confirm("Smazat tuto kartu?")) {
-            decks[currentDeck].splice(index, 1);
-            renderMainArea();
-            renderDeckList(); // update count
-            saveState();
-        }
+        if(confirm("Smazat?")) { decks[currentDeck].splice(index, 1); renderMainArea(); renderDeckList(); saveState(); }
     }
 
     function moveCard(index, direction) {
@@ -255,146 +290,103 @@
         if (newIndex >= 0 && newIndex < decks[currentDeck].length) {
             const arr = decks[currentDeck];
             [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
-            renderMainArea();
-            saveState();
+            renderMainArea(); saveState();
         }
     }
 
-    // --- 5. MODAL & FORMULÁŘ ---
+    function duplicateCard(index) {
+        const card = decks[currentDeck][index];
+        const newCard = JSON.parse(JSON.stringify(card)); // Deep copy
+        newCard.id = Date.now() + Math.random(); // New ID
+        newCard.q += " (Kopie)";
+        newCard.reps = 0; newCard.interval = 0; newCard.ef = 2.5; newCard.nextReview = Date.now(); // Reset SRS
+        
+        decks[currentDeck].splice(index + 1, 0, newCard); // Insert after original
+        renderMainArea(); renderDeckList(); saveState();
+    }
+
+    // MODAL
     function openModal(index = null) {
         const modal = document.getElementById('modal-overlay');
-        const title = document.getElementById('modal-title');
-        
-        // Reset form
         document.getElementById('edit-q').value = "";
         document.getElementById('edit-a').value = "";
         tempImgQ = ""; tempImgA = "";
         updatePreview('q'); updatePreview('a');
 
         if (index !== null) {
-            // Editace
             editingCardId = index;
-            title.innerText = "Upravit kartu";
+            document.getElementById('modal-title').innerText = "Upravit kartu";
             const c = decks[currentDeck][index];
             document.getElementById('edit-q').value = c.q;
             document.getElementById('edit-a').value = Array.isArray(c.a) ? c.a.join('\n') : c.a;
-            tempImgQ = c.qImg || "";
-            tempImgA = c.aImg || "";
+            tempImgQ = c.qImg || ""; tempImgA = c.aImg || "";
             updatePreview('q'); updatePreview('a');
         } else {
-            // Nová
             editingCardId = null;
-            title.innerText = "Nová karta";
+            document.getElementById('modal-title').innerText = "Nová karta";
         }
-        
         modal.style.display = 'flex';
     }
 
-    function closeModal() {
-        document.getElementById('modal-overlay').style.display = 'none';
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function openAiModal() { document.getElementById('ai-modal').style.display = 'flex'; }
+    function copyAiPrompt() {
+        const text = document.getElementById('ai-prompt-text').innerText;
+        navigator.clipboard.writeText(text).then(() => { alert("Zkopírováno!"); });
     }
 
     function saveCard() {
         const q = document.getElementById('edit-q').value.trim();
         const aVal = document.getElementById('edit-a').value.trim();
-        if (!q || !aVal) { alert("Vyplňte otázku i odpověď."); return; }
-
+        if (!q || !aVal) { alert("Vyplňte vše."); return; }
         const aArr = aVal.split('\n').filter(line => line.trim() !== "");
-
-        const newCardData = {
-            id: Date.now() + Math.random(), // Generujeme nové unikátní ID
-            deck: currentDeck,
-            q: q,
-            a: aArr,
-            qImg: tempImgQ,
-            aImg: tempImgA,
-            // Inicializace SRS metrik
-            reps: 0, interval: 0, ef: 2.5, nextReview: Date.now()
+        
+        const newCardData = { 
+            id: Date.now() + Math.random(), 
+            deck: currentDeck, 
+            q: q, a: aArr, 
+            qImg: tempImgQ, aImg: tempImgA, 
+            reps: 0, interval: 0, ef: 2.5, nextReview: Date.now() 
         };
 
         if (editingCardId !== null) {
-            // Zachovat SRS historii při editaci!
             const old = decks[currentDeck][editingCardId];
-            newCardData.id = old.id;
-            newCardData.reps = old.reps;
-            newCardData.interval = old.interval;
-            newCardData.ef = old.ef;
+            newCardData.id = old.id; newCardData.reps = old.reps; 
+            newCardData.interval = old.interval; newCardData.ef = old.ef; 
             newCardData.nextReview = old.nextReview;
-            
             decks[currentDeck][editingCardId] = newCardData;
-        } else {
-            decks[currentDeck].push(newCardData);
-        }
+        } else { decks[currentDeck].push(newCardData); }
 
-        closeModal();
-        renderMainArea();
-        renderDeckList();
-        saveState();
+        closeModal('modal-overlay'); renderMainArea(); renderDeckList(); saveState();
     }
 
-    // --- 6. OBRÁZKY (PASTE & RESIZE) ---
-    // Připravíme obsluhu pro zóny
+    // IMAGES
     ['q', 'a'].forEach(type => {
         const zone = document.getElementById(`zone-${type}`);
-        
-        // Kliknutí otevře dialog
         zone.addEventListener('click', (e) => {
-            if(e.target.tagName !== 'BUTTON') { // nekliknuto na smazat
-                // Simulace file inputu by byla slozitejsi, spolehame na Ctrl+V
-                // Ale muzeme pridat i input
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = e => processFile(e.target.files[0], type);
-                input.click();
+            if(e.target.tagName !== 'BUTTON') { 
+                const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+                input.onchange = e => processFile(e.target.files[0], type); input.click();
             }
         });
-
-        // Paste event
         zone.addEventListener('paste', (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let item of items) {
-                if (item.type.indexOf("image") === 0) {
-                    e.preventDefault();
-                    processFile(item.getAsFile(), type);
-                }
-            }
+            for (let item of items) { if (item.type.indexOf("image") === 0) { e.preventDefault(); processFile(item.getAsFile(), type); } }
         });
-
-        // Smazání
-        document.getElementById(`del-${type}`).onclick = (e) => {
-            e.stopPropagation();
-            if (type === 'q') tempImgQ = ""; else tempImgA = "";
-            updatePreview(type);
-        };
+        document.getElementById(`del-${type}`).onclick = (e) => { e.stopPropagation(); if (type === 'q') tempImgQ = ""; else tempImgA = ""; updatePreview(type); };
     });
 
     function processFile(file, type) {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (event) => {
-            // Resize image logic
             const img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Max rozměr 600px (šetříme místo)
-                const MAX_SIZE = 600;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-                } else {
-                    if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 80% kvalita JPG
+                const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                const MAX_SIZE = 600; let width = img.width; let height = img.height;
+                if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 if (type === 'q') tempImgQ = dataUrl; else tempImgA = dataUrl;
                 updatePreview(type);
             };
@@ -408,64 +400,29 @@
         const imgEl = document.getElementById(`prev-${type}`);
         const txtEl = document.getElementById(`txt-${type}`);
         const delBtn = document.getElementById(`del-${type}`);
-        
-        if (url) {
-            imgEl.src = url;
-            imgEl.classList.remove('hidden');
-            delBtn.classList.remove('hidden');
-            txtEl.classList.add('hidden');
-        } else {
-            imgEl.src = "";
-            imgEl.classList.add('hidden');
-            delBtn.classList.add('hidden');
-            txtEl.classList.remove('hidden');
-        }
+        if (url) { imgEl.src = url; imgEl.classList.remove('hidden'); delBtn.classList.remove('hidden'); txtEl.classList.add('hidden'); } 
+        else { imgEl.src = ""; imgEl.classList.add('hidden'); delBtn.classList.add('hidden'); txtEl.classList.remove('hidden'); }
     }
 
-    // --- 7. IMPORT / EXPORT / SAVE ---
-    function saveState() {
-        localStorage.setItem("teacher_decks_v1", JSON.stringify(decks));
-    }
-
+    // SYSTEM
+    function saveState() { localStorage.setItem("teacher_decks_v1", JSON.stringify(decks)); }
     function exportData() {
-        const dataStr = JSON.stringify(decks, null, 2); // Hezké formátování
+        const dataStr = JSON.stringify(decks, null, 2);
         const blob = new Blob([dataStr], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "historie_srs.json";
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "historie_srs.json"; a.click();
     }
-
     function importData(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+        const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = (v) => {
             try {
                 const data = JSON.parse(v.target.result);
-                // Detekce starého formátu (pole) vs nového (objekt)
-                if (Array.isArray(data)) {
-                    // Starý formát -> import do nového tématu
-                    const name = prompt("Toto je starý formát. Zadej název tématu:");
-                    if(name) { decks[name] = data; }
-                } else {
-                    // Nový formát -> sloučení
-                    decks = Object.assign(decks, data);
-                }
-                saveState();
-                renderDeckList();
-                currentDeck = null;
-                renderMainArea();
-                alert("Data načtena!");
-            } catch (err) {
-                alert("Chyba souboru JSON.");
-            }
+                if (Array.isArray(data)) { const name = prompt("Starý formát. Název tématu:"); if(name) { decks[name] = data; } } else { decks = Object.assign(decks, data); }
+                saveState(); renderDeckList(); currentDeck = null; renderMainArea(); alert("Načteno!");
+            } catch (err) { alert("Chyba souboru."); }
         };
         reader.readAsText(file);
     }
-
 </script>
-
 </body>
 </html>

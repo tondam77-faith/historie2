@@ -40,17 +40,21 @@
 
         /* TABLE */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
         th { background: #f8f9fa; font-weight: 600; color: #666; font-size: 0.9rem; }
         tr:hover { background: #fdfdfd; }
         
         .col-id { width: 40px; color: #999; font-size: 0.8rem; }
         .col-img { width: 50px; text-align: center; }
-        .thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; background: #eee; }
-        .col-actions { width: 160px; text-align: right; white-space: nowrap; }
         
-        .action-btn { background: none; border: none; font-size: 1.1rem; padding: 5px; opacity: 0.6; cursor: pointer; }
-        .action-btn:hover { opacity: 1; transform: scale(1.1); }
+        /* Náhled obrázku v tabulce - kurzor lupa */
+        .thumb { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; background: #eee; cursor: zoom-in; transition: transform 0.1s; }
+        .thumb:hover { transform: scale(1.1); border-color: var(--primary); }
+        
+        .col-actions { width: 180px; text-align: right; white-space: nowrap; }
+        
+        .action-btn { background: none; border: none; font-size: 1.1rem; padding: 5px; opacity: 0.6; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { opacity: 1; transform: scale(1.2); }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
@@ -75,17 +79,25 @@
         .preview-large { max-height: 100px; max-width: 100%; display: block; margin: 0 auto; }
         
         .hidden { display: none; }
-        .status-missing { color: #ccc; font-size: 0.8rem; }
+        .status-missing { color: #ccc; font-size: 0.8rem; cursor: default; }
+
+        /* LIGHTBOX (Zvětšení obrázku) */
+        .lightbox-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 2000; display: none; 
+            justify-content: center; align-items: center; cursor: zoom-out;
+        }
+        .lightbox-img { max-width: 90%; max-height: 90%; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🎓 Učitelský Editor <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">v1.3</span></h1>
+    <h1>🎓 Učitelský Editor <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">v1.4</span></h1>
     <div class="top-btn-group">
-        <button class="btn-ai" onclick="openAiModal()">🤖 AI Prompt</button>
-        <button class="btn-sec" onclick="document.getElementById('file-in').click()">📂 Nahrát JSON</button>
-        <button class="btn-main" onclick="exportData()">💾 Uložit JSON</button>
+        <button class="btn-ai" onclick="openAiModal()" title="Generovat otázky pomocí AI">🤖 AI Prompt</button>
+        <button class="btn-sec" onclick="document.getElementById('file-in').click()" title="Nahrát soubor z počítače">📂 Nahrát JSON</button>
+        <button class="btn-main" onclick="exportData()" title="Stáhnout soubor pro žáky">💾 Uložit JSON</button>
     </div>
     <input type="file" id="file-in" accept=".json" style="display:none" onchange="importData(event)">
 </header>
@@ -94,8 +106,8 @@
     <div class="sidebar">
         <div class="deck-list" id="deck-list"></div>
         <div class="sidebar-footer">
-            <button class="btn-main" style="width:100%" onclick="addNewDeck()">➕ Nové téma</button>
-            <button class="btn-danger" style="width:100%; font-size:0.8rem;" onclick="wipeAllData()">🗑️ Smazat vše (Reset)</button>
+            <button class="btn-main" style="width:100%" onclick="addNewDeck()" title="Vytvořit novou sadu ručně">➕ Nové téma</button>
+            <button class="btn-danger" style="width:100%; font-size:0.8rem;" onclick="wipeAllData()" title="Kompletně vymazat editor">🗑️ Smazat vše (Reset)</button>
         </div>
     </div>
 
@@ -174,6 +186,10 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
     </div>
 </div>
 
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-img" class="lightbox-img">
+</div>
+
 <script>
     let decks = {};
     let currentDeck = null;
@@ -228,8 +244,8 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
                 <h2 style="margin:0;">${currentDeck}</h2>
                 <div class="search-box"><input type="text" placeholder="Hledat otázku..." value="${searchTerm}" onkeyup="handleSearch(this.value)"></div>
                 <div>
-                    <button class="btn-main" onclick="openModal()">➕ Přidat</button>
-                    <button class="btn-danger" onclick="deleteDeck()">🗑️ Smazat téma</button>
+                    <button class="btn-main" onclick="openModal()" title="Přidat novou kartu ručně">➕ Přidat</button>
+                    <button class="btn-danger" onclick="deleteDeck()" title="Smazat celou sadu">🗑️ Smazat téma</button>
                 </div>
             </div>
             <table><thead><tr><th class="col-id">ID</th><th class="col-img">Obr</th><th>Otázka</th><th>Odpověď</th><th class="col-img">Obr</th><th class="col-actions">Akce</th></tr></thead><tbody>
@@ -238,15 +254,19 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
         decks[currentDeck].forEach((card, index) => {
             if (searchTerm && !card.q.toLowerCase().includes(searchTerm.toLowerCase())) return;
             const aText = Array.isArray(card.a) ? card.a.join(", ") : card.a;
-            const qThumb = card.qImg ? `<img src="${card.qImg}" class="thumb">` : '<span class="status-missing">-</span>';
-            const aThumb = card.aImg ? `<img src="${card.aImg}" class="thumb">` : '<span class="status-missing">-</span>';
+            
+            // LUPA NA OBRÁZKY
+            const qThumb = card.qImg ? `<img src="${card.qImg}" class="thumb" onclick="showLightbox('${card.qImg}')" title="Klikni pro zvětšení">` : '<span class="status-missing">-</span>';
+            const aThumb = card.aImg ? `<img src="${card.aImg}" class="thumb" onclick="showLightbox('${card.aImg}')" title="Klikni pro zvětšení">` : '<span class="status-missing">-</span>';
+            
+            // TOOLTIPY U TLAČÍTEK
             html += `<tr><td class="col-id">${index+1}</td><td class="col-img">${qThumb}</td><td>${card.q}</td><td><div style="max-height:50px; overflow:hidden;">${aText}</div></td><td class="col-img">${aThumb}</td>
             <td class="col-actions">
-                <button class="action-btn" onclick="moveCard(${index}, -1)">⬆️</button>
-                <button class="action-btn" onclick="moveCard(${index}, 1)">⬇️</button>
-                <button class="action-btn" onclick="duplicateCard(${index})">📋</button>
-                <button class="action-btn" onclick="openModal(${index})">✏️</button>
-                <button class="action-btn" style="color:red;" onclick="removeCard(${index})">🗑️</button>
+                <button class="action-btn" onclick="moveCard(${index}, -1)" title="Posunout nahoru">⬆️</button>
+                <button class="action-btn" onclick="moveCard(${index}, 1)" title="Posunout dolů">⬇️</button>
+                <button class="action-btn" onclick="duplicateCard(${index})" title="Duplikovat kartu">📋</button>
+                <button class="action-btn" onclick="openModal(${index})" title="Upravit kartu">✏️</button>
+                <button class="action-btn" style="color:red;" onclick="removeCard(${index})" title="Smazat kartu">🗑️</button>
             </td></tr>`;
         });
         html += `</tbody></table>`;
@@ -270,6 +290,15 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
         newCard.id = Date.now() + Math.random(); newCard.q += " (Kopie)"; newCard.reps=0; newCard.interval=0; newCard.ef=2.5; newCard.nextReview=Date.now();
         decks[currentDeck].splice(index + 1, 0, newCard);
         renderMainArea(); renderDeckList(); saveState();
+    }
+
+    // LIGHTBOX
+    function showLightbox(url) {
+        document.getElementById('lightbox-img').src = url;
+        document.getElementById('lightbox').style.display = 'flex';
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
     }
 
     function openModal(index = null) {
@@ -352,20 +381,14 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "historie_srs.json"; a.click();
     }
     
-    // VALIDACE IMPORTU
     function importData(e) {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = (v) => {
             try {
                 const data = JSON.parse(v.target.result);
-                // Kontrola, zda to nejsou nesmyslná data z manifestu (hledáme pole)
                 const isBadData = Object.values(data).some(val => !Array.isArray(val));
-                if (isBadData) {
-                    alert("Chyba: Soubor neobsahuje platná data pro kartičky (možná jste nahrál manifest.json?).");
-                    return;
-                }
-
+                if (isBadData) { alert("Chyba: Soubor neobsahuje data kartiček."); return; }
                 if (Array.isArray(data)) { const name = prompt("Starý formát. Název tématu:"); if(name) { decks[name] = data; } } else { decks = Object.assign(decks, data); }
                 saveState(); renderDeckList(); currentDeck = null; renderMainArea(); alert("Načteno!");
             } catch (err) { alert("Chyba souboru JSON."); }

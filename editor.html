@@ -27,14 +27,13 @@
         .deck-item { padding: 12px; margin-bottom: 5px; cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; }
         .deck-item:hover { background: #f0f5f9; }
         .deck-item.active { background: var(--primary); color: white; }
-        .sidebar-footer { padding: 15px; border-top: 1px solid #eee; }
+        .sidebar-footer { padding: 15px; border-top: 1px solid #eee; display:flex; flex-direction:column; gap:10px; }
 
         /* MAIN CONTENT */
         .main-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
         
         .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; flex-wrap: wrap; gap: 10px;}
         
-        /* SEARCH BAR */
         .search-box { flex-grow: 1; margin: 0 20px; position: relative; }
         .search-box input { width: 100%; padding: 10px 10px 10px 35px; border-radius: 20px; border: 1px solid #ccc; outline: none; }
         .search-box::before { content: "🔍"; position: absolute; left: 10px; top: 10px; opacity: 0.5; }
@@ -82,7 +81,7 @@
 <body>
 
 <header>
-    <h1>🎓 Učitelský Editor <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">v1.2</span></h1>
+    <h1>🎓 Učitelský Editor <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">v1.3</span></h1>
     <div class="top-btn-group">
         <button class="btn-ai" onclick="openAiModal()">🤖 AI Prompt</button>
         <button class="btn-sec" onclick="document.getElementById('file-in').click()">📂 Nahrát JSON</button>
@@ -96,6 +95,7 @@
         <div class="deck-list" id="deck-list"></div>
         <div class="sidebar-footer">
             <button class="btn-main" style="width:100%" onclick="addNewDeck()">➕ Nové téma</button>
+            <button class="btn-danger" style="width:100%; font-size:0.8rem;" onclick="wipeAllData()">🗑️ Smazat vše (Reset)</button>
         </div>
     </div>
 
@@ -114,7 +114,6 @@
         </div>
         <div class="modal-body">
             <input type="hidden" id="edit-id">
-            
             <div class="form-group">
                 <label>Otázka</label>
                 <input type="text" id="edit-q" placeholder="Znění otázky...">
@@ -124,7 +123,6 @@
                     <button class="btn-danger hidden" id="del-q" style="padding:2px 6px; font-size:0.7rem;">X</button>
                 </div>
             </div>
-
             <div class="form-group">
                 <label>Odpověď (každý řádek = jedna odrážka)</label>
                 <textarea id="edit-a" placeholder="Odpověď..."></textarea>
@@ -149,20 +147,20 @@
             <button onclick="closeModal('ai-modal')" style="background:none; border:none; font-size:1.2rem;">✖</button>
         </div>
         <div class="modal-body">
-            <p style="margin-top:0; font-size:0.9rem; color:#666;">Zkopírujte tento text, vložte ho do ChatGPT/Gemini a pouze doplňte téma.</p>
+            <p style="margin-top:0; font-size:0.9rem; color:#666;">Zkopírujte, vložte do ChatGPT a doplňte téma.</p>
             <div class="ai-box" id="ai-prompt-text">Vytvoř mi sadu 10 otázek na téma [DOPLŇ TÉMA] pro mou aplikaci.
 Výstup musí být pouze čistý JSON kód v následujícím formátu:
 
 1. Odpověď ("a") musí být vždy pole řetězců (list).
 2. Přidej prázdná pole "qImg" a "aImg".
-3. Nepoužívej markdown (žádné ```json).
+3. Nepoužívej markdown.
 
 Šablona:
 {
   "Název Tématu": [
     {
       "q": "Otázka?",
-      "a": ["Odpověď 1", "Odpověď 2"],
+      "a": ["Odpověď 1"],
       "qImg": "",
       "aImg": ""
     }
@@ -171,7 +169,7 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
         </div>
         <div class="modal-footer">
             <button class="btn-sec" onclick="closeModal('ai-modal')">Zavřít</button>
-            <button class="btn-main" onclick="copyAiPrompt()">📋 Kopírovat do schránky</button>
+            <button class="btn-main" onclick="copyAiPrompt()">📋 Kopírovat</button>
         </div>
     </div>
 </div>
@@ -184,11 +182,9 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
     let tempImgA = "";
     let searchTerm = "";
 
-    // START
     const saved = localStorage.getItem("teacher_decks_v1");
     if (saved) { try { decks = JSON.parse(saved); renderDeckList(); } catch(e) {} }
 
-    // RENDER
     function renderDeckList() {
         const list = document.getElementById('deck-list');
         list.innerHTML = "";
@@ -208,7 +204,7 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
 
     function selectDeck(name) {
         currentDeck = name;
-        searchTerm = ""; // reset search
+        searchTerm = "";
         renderDeckList();
         renderMainArea();
     }
@@ -230,61 +226,36 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
         let html = `
             <div class="deck-header">
                 <h2 style="margin:0;">${currentDeck}</h2>
-                <div class="search-box">
-                    <input type="text" placeholder="Hledat otázku..." value="${searchTerm}" onkeyup="handleSearch(this.value)">
-                </div>
+                <div class="search-box"><input type="text" placeholder="Hledat otázku..." value="${searchTerm}" onkeyup="handleSearch(this.value)"></div>
                 <div>
-                    <button class="btn-main" onclick="openModal()">➕ Přidat kartu</button>
+                    <button class="btn-main" onclick="openModal()">➕ Přidat</button>
                     <button class="btn-danger" onclick="deleteDeck()">🗑️ Smazat téma</button>
                 </div>
             </div>
-            <table>
-                <thead><tr><th class="col-id">ID</th><th class="col-img">Obr</th><th>Otázka</th><th>Odpověď</th><th class="col-img">Obr</th><th class="col-actions">Akce</th></tr></thead>
-                <tbody>
+            <table><thead><tr><th class="col-id">ID</th><th class="col-img">Obr</th><th>Otázka</th><th>Odpověď</th><th class="col-img">Obr</th><th class="col-actions">Akce</th></tr></thead><tbody>
         `;
         
         decks[currentDeck].forEach((card, index) => {
-            // Filtrace
             if (searchTerm && !card.q.toLowerCase().includes(searchTerm.toLowerCase())) return;
-
             const aText = Array.isArray(card.a) ? card.a.join(", ") : card.a;
             const qThumb = card.qImg ? `<img src="${card.qImg}" class="thumb">` : '<span class="status-missing">-</span>';
             const aThumb = card.aImg ? `<img src="${card.aImg}" class="thumb">` : '<span class="status-missing">-</span>';
-            
-            html += `<tr>
-                    <td class="col-id">${index+1}</td>
-                    <td class="col-img">${qThumb}</td>
-                    <td>${card.q}</td>
-                    <td><div style="max-height:50px; overflow:hidden;">${aText}</div></td>
-                    <td class="col-img">${aThumb}</td>
-                    <td class="col-actions">
-                        <button class="action-btn" onclick="moveCard(${index}, -1)" title="Nahoru">⬆️</button>
-                        <button class="action-btn" onclick="moveCard(${index}, 1)" title="Dolů">⬇️</button>
-                        <button class="action-btn" onclick="duplicateCard(${index})" title="Duplikovat">📋</button>
-                        <button class="action-btn" onclick="openModal(${index})" title="Upravit">✏️</button>
-                        <button class="action-btn" style="color:red;" onclick="removeCard(${index})" title="Smazat">🗑️</button>
-                    </td></tr>`;
+            html += `<tr><td class="col-id">${index+1}</td><td class="col-img">${qThumb}</td><td>${card.q}</td><td><div style="max-height:50px; overflow:hidden;">${aText}</div></td><td class="col-img">${aThumb}</td>
+            <td class="col-actions">
+                <button class="action-btn" onclick="moveCard(${index}, -1)">⬆️</button>
+                <button class="action-btn" onclick="moveCard(${index}, 1)">⬇️</button>
+                <button class="action-btn" onclick="duplicateCard(${index})">📋</button>
+                <button class="action-btn" onclick="openModal(${index})">✏️</button>
+                <button class="action-btn" style="color:red;" onclick="removeCard(${index})">🗑️</button>
+            </td></tr>`;
         });
         html += `</tbody></table>`;
         area.innerHTML = html;
-        
-        // Focus zpět do inputu pokud se hledá
-        if(searchTerm) {
-            const input = document.querySelector('.search-box input');
-            if(input) { input.focus(); }
-        }
+        if(searchTerm) { const input = document.querySelector('.search-box input'); if(input) input.focus(); }
     }
 
-    function handleSearch(val) {
-        searchTerm = val;
-        renderMainArea();
-    }
-
-    // ACTIONS
-    function removeCard(index) {
-        if(confirm("Smazat?")) { decks[currentDeck].splice(index, 1); renderMainArea(); renderDeckList(); saveState(); }
-    }
-
+    function handleSearch(val) { searchTerm = val; renderMainArea(); }
+    function removeCard(index) { if(confirm("Smazat?")) { decks[currentDeck].splice(index, 1); renderMainArea(); renderDeckList(); saveState(); } }
     function moveCard(index, direction) {
         const newIndex = index + direction;
         if (newIndex >= 0 && newIndex < decks[currentDeck].length) {
@@ -293,26 +264,17 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
             renderMainArea(); saveState();
         }
     }
-
     function duplicateCard(index) {
         const card = decks[currentDeck][index];
-        const newCard = JSON.parse(JSON.stringify(card)); // Deep copy
-        newCard.id = Date.now() + Math.random(); // New ID
-        newCard.q += " (Kopie)";
-        newCard.reps = 0; newCard.interval = 0; newCard.ef = 2.5; newCard.nextReview = Date.now(); // Reset SRS
-        
-        decks[currentDeck].splice(index + 1, 0, newCard); // Insert after original
+        const newCard = JSON.parse(JSON.stringify(card));
+        newCard.id = Date.now() + Math.random(); newCard.q += " (Kopie)"; newCard.reps=0; newCard.interval=0; newCard.ef=2.5; newCard.nextReview=Date.now();
+        decks[currentDeck].splice(index + 1, 0, newCard);
         renderMainArea(); renderDeckList(); saveState();
     }
 
-    // MODAL
     function openModal(index = null) {
         const modal = document.getElementById('modal-overlay');
-        document.getElementById('edit-q').value = "";
-        document.getElementById('edit-a').value = "";
-        tempImgQ = ""; tempImgA = "";
-        updatePreview('q'); updatePreview('a');
-
+        document.getElementById('edit-q').value = ""; document.getElementById('edit-a').value = ""; tempImgQ = ""; tempImgA = ""; updatePreview('q'); updatePreview('a');
         if (index !== null) {
             editingCardId = index;
             document.getElementById('modal-title').innerText = "Upravit kartu";
@@ -321,53 +283,32 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
             document.getElementById('edit-a').value = Array.isArray(c.a) ? c.a.join('\n') : c.a;
             tempImgQ = c.qImg || ""; tempImgA = c.aImg || "";
             updatePreview('q'); updatePreview('a');
-        } else {
-            editingCardId = null;
-            document.getElementById('modal-title').innerText = "Nová karta";
-        }
+        } else { editingCardId = null; document.getElementById('modal-title').innerText = "Nová karta"; }
         modal.style.display = 'flex';
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function openAiModal() { document.getElementById('ai-modal').style.display = 'flex'; }
-    function copyAiPrompt() {
-        const text = document.getElementById('ai-prompt-text').innerText;
-        navigator.clipboard.writeText(text).then(() => { alert("Zkopírováno!"); });
-    }
+    function copyAiPrompt() { navigator.clipboard.writeText(document.getElementById('ai-prompt-text').innerText).then(() => alert("Zkopírováno!")); }
 
     function saveCard() {
         const q = document.getElementById('edit-q').value.trim();
         const aVal = document.getElementById('edit-a').value.trim();
         if (!q || !aVal) { alert("Vyplňte vše."); return; }
         const aArr = aVal.split('\n').filter(line => line.trim() !== "");
-        
-        const newCardData = { 
-            id: Date.now() + Math.random(), 
-            deck: currentDeck, 
-            q: q, a: aArr, 
-            qImg: tempImgQ, aImg: tempImgA, 
-            reps: 0, interval: 0, ef: 2.5, nextReview: Date.now() 
-        };
-
+        const newCardData = { id: Date.now() + Math.random(), deck: currentDeck, q: q, a: aArr, qImg: tempImgQ, aImg: tempImgA, reps: 0, interval: 0, ef: 2.5, nextReview: Date.now() };
         if (editingCardId !== null) {
             const old = decks[currentDeck][editingCardId];
-            newCardData.id = old.id; newCardData.reps = old.reps; 
-            newCardData.interval = old.interval; newCardData.ef = old.ef; 
-            newCardData.nextReview = old.nextReview;
+            newCardData.id = old.id; newCardData.reps = old.reps; newCardData.interval = old.interval; newCardData.ef = old.ef; newCardData.nextReview = old.nextReview;
             decks[currentDeck][editingCardId] = newCardData;
         } else { decks[currentDeck].push(newCardData); }
-
         closeModal('modal-overlay'); renderMainArea(); renderDeckList(); saveState();
     }
 
-    // IMAGES
     ['q', 'a'].forEach(type => {
         const zone = document.getElementById(`zone-${type}`);
         zone.addEventListener('click', (e) => {
-            if(e.target.tagName !== 'BUTTON') { 
-                const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
-                input.onchange = e => processFile(e.target.files[0], type); input.click();
-            }
+            if(e.target.tagName !== 'BUTTON') { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = e => processFile(e.target.files[0], type); input.click(); }
         });
         zone.addEventListener('paste', (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
@@ -404,24 +345,39 @@ Výstup musí být pouze čistý JSON kód v následujícím formátu:
         else { imgEl.src = ""; imgEl.classList.add('hidden'); delBtn.classList.add('hidden'); txtEl.classList.remove('hidden'); }
     }
 
-    // SYSTEM
     function saveState() { localStorage.setItem("teacher_decks_v1", JSON.stringify(decks)); }
     function exportData() {
         const dataStr = JSON.stringify(decks, null, 2);
         const blob = new Blob([dataStr], {type: "application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "historie_srs.json"; a.click();
     }
+    
+    // VALIDACE IMPORTU
     function importData(e) {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = (v) => {
             try {
                 const data = JSON.parse(v.target.result);
+                // Kontrola, zda to nejsou nesmyslná data z manifestu (hledáme pole)
+                const isBadData = Object.values(data).some(val => !Array.isArray(val));
+                if (isBadData) {
+                    alert("Chyba: Soubor neobsahuje platná data pro kartičky (možná jste nahrál manifest.json?).");
+                    return;
+                }
+
                 if (Array.isArray(data)) { const name = prompt("Starý formát. Název tématu:"); if(name) { decks[name] = data; } } else { decks = Object.assign(decks, data); }
                 saveState(); renderDeckList(); currentDeck = null; renderMainArea(); alert("Načteno!");
-            } catch (err) { alert("Chyba souboru."); }
+            } catch (err) { alert("Chyba souboru JSON."); }
         };
         reader.readAsText(file);
+    }
+
+    function wipeAllData() {
+        if(confirm("OPRAVDU SMAZAT VŠECHNA DATA V EDITORU?\n(Tuto akci nelze vrátit)")) {
+            localStorage.removeItem("teacher_decks_v1");
+            location.reload();
+        }
     }
 </script>
 </body>

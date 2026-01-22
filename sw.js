@@ -1,9 +1,10 @@
-const CACHE_NAME = 'historie-srs-v58';
+const CACHE_NAME = 'historie-srs-v1.0';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './history.png'
+  './history.png',
+  './favicon.ico'
 ];
 
 self.addEventListener('install', (e) => {
